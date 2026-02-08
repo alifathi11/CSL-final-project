@@ -2,16 +2,16 @@
 #include "constants.h"
 #include "utility.h"
 
-static bool is_valid_kernel_size(int kernelSize) {
+static bool is_valid_kernel_size(int kernel_size) {
     return (
-        kernelSize == KERNEL_SIZE_3 ||
-        kernelSize == KERNEL_SIZE_5
+        kernel_size == KERNEL_SIZE_3 ||
+        kernel_size == KERNEL_SIZE_5
     );
 }
 
-static bool is_valid_image_size(int imageHeight, int imageWidth) {
+static bool is_valid_image_size(int img_height, int img_width) {
     return (
-        imageHeight > 0 && imageWidth > 0
+        img_height > 0 && img_width > 0
     );
 }
 
@@ -23,8 +23,8 @@ static bool is_valid_stride(int stride) {
 
 static bool is_valid_conv2d_params(const Conv2DParams& params) {
     if (
-        !is_valid_kernel_size(params.kernelSize) ||
-        !is_valid_image_size(params.imageHeight, params.imageWidth) ||
+        !is_valid_kernel_size(params.kernel_size) ||
+        !is_valid_image_size(params.img_height, params.img_width) ||
         !is_valid_stride(params.stride)
     ) {
         return false;
@@ -71,8 +71,8 @@ int conv2d_baseline(
         return CODE_FAILURE;
     }
 
-    const int outHeight = (params.imageHeight - params.kernelSize) / params.stride + 1;
-    const int outWidth  = (params.imageWidth - params.kernelSize) / params.stride + 1;
+    const int outHeight = (params.img_height - params.kernel_size) / params.stride + 1;
+    const int outWidth  = (params.img_width - params.kernel_size) / params.stride + 1;
 
     for (int i = 0; i < outHeight; i++) {
         for (int j = 0; j < outWidth; j++) {
@@ -82,12 +82,12 @@ int conv2d_baseline(
             const int base_i = i * params.stride;
             const int base_j = j * params.stride;
 
-            for (int u = 0; u < params.kernelSize; u++) {
+            for (int u = 0; u < params.kernel_size; u++) {
                 
-                const int img_row = (base_i + u) * params.imageWidth;
-                const int ker_row = u * params.kernelSize;
+                const int img_row = (base_i + u) * params.img_width;
+                const int ker_row = u * params.kernel_size;
 
-                for (int v = 0; v < params.kernelSize; v++) {
+                for (int v = 0; v < params.kernel_size; v++) {
                     int img_idx = img_row + (base_j + v);
                     int ker_idx = ker_row + v;
 
