@@ -7,6 +7,9 @@ CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -Wpedantic
 SIMD     := -mavx2
 INCLUDES := -Iinclude
 
+OPENCV_CFLAGS := $(shell pkg-config --cflags opencv4)
+OPENCV_LIBS   := $(shell pkg-config --libs opencv4)
+
 # =========================
 # Project structure
 # =========================
@@ -36,7 +39,7 @@ all: $(BIN_DIR)/$(TARGET)
 
 $(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(SIMD) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(SIMD) $^ -o $@ $(OPENCV_LIBS)
 
 # =========================
 # Compile
@@ -44,7 +47,7 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) $(SIMD) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(SIMD) $(INCLUDES) $(OPENCV_CFLAGS) -c $< -o $@
 
 # =========================
 # Utility targets

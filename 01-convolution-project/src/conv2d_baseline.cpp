@@ -1,6 +1,6 @@
-#include "../include/conv2d.h"
-#include "../include/constants.h"
-#include "../include/utility.h"
+#include "conv2d.h"
+#include "constants.h"
+#include "utility.h"
 
 static bool is_valid_kernel_size(int kernelSize) {
     return (
@@ -67,7 +67,7 @@ int conv2d_baseline(
     );
 
     if (res != CODE_VALIDATION_OK) {
-        print_err(ERR_MSG_INVALID_ARG, res);
+        print_err("Invalid arguments to function", res);
         return CODE_FAILURE;
     }
 

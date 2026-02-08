@@ -1,47 +1,92 @@
-#include <iostream>
+#include <stdio.h>
 
-#include "../include/conv2d.h"
+#include "conv2d.h"
+#include "constants.h"
+#include "utility.h"
 
-int main() {
-    const int imageWidth = 5;
-    const int imageHeight = 5;
-    const int kernelSize = 3;
-    const int stride = 2;
+static void print_usage(const char *program_name) {
+    fprintf(stderr, "Usage:\n");
+    fprintf(stderr, "%s <input-image-path> <output-image-path>\n", program_name);
+}
 
-    float image[imageHeight * imageWidth] = {
-        1, 2, 3, 4, 5,
-        6, 7, 8, 9,10,
-       11,12,13,14,15,
-       16,17,18,19,20,
-       21,22,23,24,25
-    };
+int main(int argc, char **argv) {
 
-    float kernel[kernelSize * kernelSize] = {
-        1, 0,-1,
-        1, 0,-1,
-        1, 0,-1
-    };
+    int res = CODE_SUCCESS;
 
-    const int outHeight = (imageHeight - kernelSize) / stride + 1;
-    const int outWidth = (imageWidth - kernelSize) / stride + 1;
-    const int outSize = outHeight * outWidth;
-    float output[outSize]= {};
+    char *input_filename  = nullptr;
+    char *output_filename = nullptr;
 
-    Conv2DParams params;
-    params.imageHeight = imageHeight;
-    params.imageWidth = imageWidth;
-    params.kernelSize = kernelSize;
-    params.stride = stride;
+    float *image  = nullptr; 
+    float *kernel = nullptr;
+    float *output = nullptr;
 
-    conv2d_baseline(image, kernel, params, output);
+    int img_height = 0, img_width = 0;
+    int kernel_size = 0;
+    int stride = 0;
 
-    for (int i = 0; i < outHeight; ++i) {
-        for (int j = 0; j < outWidth; ++j) {
-            int idx = i * outWidth + j;
-            std::cout << output[idx] << " ";
-        }
-        std::cout << "\n";
+    int out_height = 0, out_width = 0, out_size = 0;
+    
+    if (argc != 3) {
+        print_usage(argv[0]);
+        res = CODE_FAILURE_INVALID_ARG;
+        goto _exit;
     }
 
-    return 0;
+    input_filename = argv[1];
+    output_filename = argv[2];
+
+    res = load_grayscale_image(
+            input_filename, 
+            image, 
+            img_height, 
+            img_width);
+
+    if (res != CODE_SUCCESS) {
+        goto _exit;
+    }
+
+    kernel_size = 3;
+    kernel = new float[kernel_size * kernel_size] {
+        0, -1,0,
+        -1, 5,-1,
+        0, -1,0
+    };
+
+    stride = 1;
+
+    out_height = (img_height - kernel_size) / stride + 1;
+    out_width = (img_width - kernel_size) / stride + 1;
+    out_size = out_height * out_width;
+    
+    Conv2DParams params;
+    params.imageHeight = img_height;
+    params.imageWidth  = img_width;
+    params.kernelSize  = kernel_size;
+    params.stride      = stride;
+
+    output = new float[out_size];
+
+    res = conv2d_baseline(image, kernel, params, output);
+
+    if (res != CODE_SUCCESS) {
+        goto _exit;
+    }
+
+    res = save_float_array_as_grayscale_image(
+            output_filename, 
+            output, 
+            out_height, 
+            out_width
+    );
+
+    if (res != CODE_SUCCESS) {
+        goto _exit;
+    }
+
+_exit: 
+    delete[] image;
+    delete[] kernel;
+    delete[] output;
+
+    return res;
 }
