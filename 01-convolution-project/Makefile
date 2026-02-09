@@ -3,7 +3,7 @@
 # =========================
 
 CXX      := g++
-CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -Wpedantic
+CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -Wpedantic -msse4.1
 SIMD     := -mavx2
 INCLUDES := -Iinclude
 
@@ -23,8 +23,10 @@ TARGET   := conv2d.run
 SOURCES  := \
 	$(SRC_DIR)/main.cpp \
 	$(SRC_DIR)/conv2d_baseline.cpp \
+	$(SRC_DIR)/conv2d_sse.cpp \
+	$(SRC_DIR)/conv2d_avx.cpp \
 	$(SRC_DIR)/utility.cpp \
-	$(SRC_DIR)/io.cpp
+	$(SRC_DIR)/io.cpp 
 
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

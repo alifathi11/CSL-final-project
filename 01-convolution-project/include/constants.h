@@ -29,12 +29,12 @@
 #define LRG_BUF_SIZE              1024
 
 #define ENGINE_MODE_BASELINE           1
-#define ENGINE_MODE_SIMD               2   
+#define ENGINE_MODE_SSE                2   
 #define ENGINE_MODE_AVX                3
 
 #define ENGINE_MODE_BASELINE_STR    "Baseline"
-#define ENGINE_MODE_SIMD_STR            "SIMD"
-#define ENGINE_MODE_AVX_STR              "AVX"
+#define ENGINE_MODE_SSE_STR             "SSE"
+#define ENGINE_MODE_AVX_STR             "AVX"
 
 #define KERNEL_TYPE_SHARPEN          1
 #define KERNEL_TYPE_BLUR             2
@@ -43,3 +43,6 @@
 #define KERNEL_TYPE_SHARPEN_STR   "Sharpen"
 #define KERNEL_TYPE_BLUR_STR         "Blur"
 #define KERNEL_TYPE_EDGE_STR         "Edge"
+
+#define SSE_REGISTERS_SIZE_BIT      128
+#define FLOAT_32_SIZE_BIT            32

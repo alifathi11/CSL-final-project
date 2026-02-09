@@ -2,14 +2,14 @@
 #include "constants.h"
 #include "utility.h"
 
-static bool is_valid_kernel_size(int kernel_size) {
+bool is_valid_kernel_size(int kernel_size) {
     return (
         kernel_size == KERNEL_SIZE_3 ||
         kernel_size == KERNEL_SIZE_5
     );
 }
 
-static bool is_valid_image_size(int img_height, int img_width) {
+bool is_valid_image_size(int img_height, int img_width) {
     return (
         img_height > 0 && img_width > 0
     );
@@ -21,7 +21,7 @@ static bool is_valid_stride(int stride) {
     );
 }
 
-static bool is_valid_conv2d_params(const Conv2DParams& params) {
+bool is_valid_conv2d_params(const Conv2DParams& params) {
     if (
         !is_valid_kernel_size(params.kernel_size) ||
         !is_valid_image_size(params.img_height, params.img_width) ||
@@ -71,11 +71,11 @@ int conv2d_baseline(
         return CODE_FAILURE;
     }
 
-    const int outHeight = (params.img_height - params.kernel_size) / params.stride + 1;
-    const int outWidth  = (params.img_width - params.kernel_size) / params.stride + 1;
+    const int out_height = (params.img_height - params.kernel_size) / params.stride + 1;
+    const int out_width  = (params.img_width - params.kernel_size) / params.stride + 1;
 
-    for (int i = 0; i < outHeight; i++) {
-        for (int j = 0; j < outWidth; j++) {
+    for (int i = 0; i < out_height; i++) {
+        for (int j = 0; j < out_width; j++) {
 
             float sum = 0.0f;
 
@@ -95,7 +95,7 @@ int conv2d_baseline(
                 }
             }
 
-            int out_idx = i * outWidth + j;
+            int out_idx = i * out_width + j;
             output[out_idx] = sum; 
         }
     }

@@ -7,6 +7,10 @@ struct Conv2DParams {
     int stride;
 };
 
+bool is_valid_conv2d_params(const Conv2DParams& params);
+bool is_valid_image_size(int img_height, int img_width);
+bool is_valid_kernel_size(int kernel_size);
+
 int conv2d_baseline(
     const float *image,
     const float *kernel,
@@ -14,7 +18,7 @@ int conv2d_baseline(
     float *output
 );
 
-int conv2d_simd(
+int conv2d_sse(
     const float *image,
     const float *kernel,
     const Conv2DParams& params, 

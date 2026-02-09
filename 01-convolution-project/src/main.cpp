@@ -1,4 +1,5 @@
-// #include <stdio.h>
+#include <chrono> 
+#include <iostream> 
 
 #include "conv2d.h"
 #include "constants.h"
@@ -61,8 +62,8 @@ static int read_interactive_input(InputParams& input_params) {
     OptionEntry engine_modes[3];
     engine_modes[0].option_number = ENGINE_MODE_BASELINE;
     engine_modes[0].option_name   = ENGINE_MODE_BASELINE_STR;
-    engine_modes[1].option_number = ENGINE_MODE_SIMD;
-    engine_modes[1].option_name   = ENGINE_MODE_SIMD_STR;
+    engine_modes[1].option_number = ENGINE_MODE_SSE;
+    engine_modes[1].option_name   = ENGINE_MODE_SSE_STR;
     engine_modes[2].option_number = ENGINE_MODE_AVX;
     engine_modes[2].option_name   = ENGINE_MODE_AVX_STR;
 
@@ -148,6 +149,9 @@ static int run_interactive() {
 
     std::string output_filename;
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
+    std::chrono::duration<double, std::milli> elapsed;
+
     res = read_interactive_input(input_params);
     if (res != CODE_SUCCESS) {
         goto _exit;
@@ -183,13 +187,46 @@ static int run_interactive() {
     conv2d_params.img_width   = img_width;
     conv2d_params.kernel_size = input_params.kernel_size;
     conv2d_params.stride      = stride;
- 
-    res = conv2d_baseline(
-            image,
-            kernel,
-            conv2d_params,
-            output);
-    
+
+    t0 = std::chrono::high_resolution_clock::now();
+
+    switch (input_params.engine_mode) {
+        case ENGINE_MODE_BASELINE: 
+            res = conv2d_baseline(
+                    image,
+                    kernel,
+                    conv2d_params,
+                    output);
+            break;
+        
+        case ENGINE_MODE_SSE: 
+            res = conv2d_sse(
+                image,
+                kernel,
+                conv2d_params,
+                output);
+            break;
+        
+        case ENGINE_MODE_AVX: 
+            res = conv2d_avx(
+                image,
+                kernel,
+                conv2d_params,
+                output);
+            break;
+
+        default: 
+            print_err("Invalid engine mode", CODE_FAILURE_INVALID_ARG);
+            return CODE_FAILURE;
+    }
+
+    t1 = std::chrono::high_resolution_clock::now();
+
+    elapsed = t1 - t0; 
+
+    std::cout << "[TIMING] Engine mode " << input_params.engine_mode 
+              << " took " << elapsed.count() << " ms" << std::endl;
+
     if (res != CODE_SUCCESS) {
         goto _exit;
     }
