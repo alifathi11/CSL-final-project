@@ -22,11 +22,13 @@ TARGET   := conv2d.run
 
 SOURCES  := \
 	$(SRC_DIR)/main.cpp \
-	$(SRC_DIR)/conv2d_baseline.cpp \
-	$(SRC_DIR)/conv2d_sse.cpp \
-	$(SRC_DIR)/conv2d_avx.cpp \
+	$(SRC_DIR)/conv2d.cpp \
+	$(SRC_DIR)/speed_test.cpp \
+	$(SRC_DIR)/functional_test.cpp \
 	$(SRC_DIR)/utility.cpp \
-	$(SRC_DIR)/io.cpp 
+	$(SRC_DIR)/kernel_factory.cpp \
+	$(SRC_DIR)/io.cpp \
+
 
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

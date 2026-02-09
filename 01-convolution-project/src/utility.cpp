@@ -8,6 +8,22 @@
 #include "utility.h"
 #include "constants.h"
 
+static std::string get_engine_name(int engine_code) {
+    switch (engine_code) {
+        case ENGINE_MODE_BASELINE: return ENGINE_MODE_BASELINE_STR;
+        case ENGINE_MODE_SSE:      return ENGINE_MODE_SSE_STR;
+        case ENGINE_MODE_AVX:      return ENGINE_MODE_AVX_STR;
+
+        default: 
+            return "";
+    }
+}
+
+void print_benchmark(int engine_code, double elapsed) {
+    std::string engine_name = get_engine_name(engine_code);
+    fprintf(stderr, "%s Engine: %s took %lf ms\n", LOG_LEVEL_TIMING, engine_name.c_str(), elapsed);
+}
+
 void print_err(const char *msg, int errcode) {
     fprintf(stderr, "%s %s (CODE: %d)\n", LOG_LEVEL_ERROR, msg, errcode);
 }
@@ -15,26 +31,26 @@ void print_err(const char *msg, int errcode) {
 int safe_atoi(const char *s, int *out)
 {
     if (!s || !out)
-        return -1;
+        return CODE_FAILURE_INVALID_ARG;
 
     char *endptr = NULL;
     errno = 0;
     const long v = strtol(s, &endptr, 10);
 
     if (errno != 0)
-        return -1;
+        return CODE_FAILURE;
 
     while (isspace((unsigned char)*endptr))
         endptr++;
 
     if (endptr == s || *endptr != '\0')
-        return -1;
+        return CODE_FAILURE;
 
     if (v < INT_MIN || v > INT_MAX)
-        return -1;
+        return CODE_FAILURE;
 
     *out = (int)v;
-    return 0;
+    return CODE_SUCCESS;
 }
 
 int safe_atox(const char *s, unsigned int *out)
@@ -46,28 +62,28 @@ int safe_atox(const char *s, unsigned int *out)
 
     if (errno != 0 || end == s || *end != '\0')
     {
-        return -1;
+        return CODE_FAILURE;
     }
 
     if (v > UINT_MAX)
     {
-        return -1;
+        return CODE_FAILURE;
     }
 
     *out = (unsigned int) v;
-    return 0;
+    return CODE_SUCCESS;
 }
 
-int is_hex_string(const char *s)
+bool is_hex_string(const char *s)
 {
-    if (!s) return 0;
+    if (!s) return false;
     const size_t L = strlen(s);
-    if (L == 0 || (L % 2) != 0) return 0;
+    if (L == 0 || (L % 2) != 0) return false;
     for (size_t i = 0; i < L; ++i)
     {
-        if (!isxdigit((unsigned char)s[i])) return 0;
+        if (!isxdigit((unsigned char)s[i])) return false;
     }
-    return 1;
+    return true;
 }
 
 int read_param(const char *param_name,

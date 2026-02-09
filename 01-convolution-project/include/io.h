@@ -1,15 +1,19 @@
 #pragma once 
 
+#include "conv2d.h"
+// std::string build_output_filename(
+    
+// ) {
+//     // TODO: build output filename based on input params 
+// }
+
+
 int load_grayscale_image(
     const char *filename, 
-    float*& image, 
-    int& height, 
-    int& width
+    Image& image
 );
 
 int save_float_array_as_grayscale_image(
     const char *filename, 
-    const float *data,
-    int height, 
-    int width
+    const Image& output
 );

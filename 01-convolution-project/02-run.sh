@@ -1,8 +1,7 @@
-#!/bin/bash
+#!/bin/bash 
 
-set -e
+set -e 
 
-./01-build.sh
-chmod +x bin/conv2d.run
+chmod +x bin/conv2d.run 
 
 ./bin/conv2d.run "$@"

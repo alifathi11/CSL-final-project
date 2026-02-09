@@ -1,5 +1,11 @@
 #pragma once 
 
+#define CODE_FUNCTIONAL_TEST         1
+#define CODE_SPEED_TEST              2
+
+#define FUNCTIONAL_TEST_STR       "Functional Test"
+#define SPEED_TEST_STR                 "Speed Test"
+
 #define CODE_SUCCESS                 0
 #define CODE_VALIDATION_OK           1
 #define CODE_FAILURE                -1
@@ -9,12 +15,11 @@
 #define CODE_FAILURE_INVALID_INPUT  -5
 #define CODE_FAILURE_OUT_OF_RANGE   -6  
 #define CODE_FAILURE_NOT_SUPPORTED  -7
+#define CODE_FAILURE_FILE_NOT_FOUND -8
 
-#define BOOL_TRUE                    1
-#define BOOL_FALSE                   0
-
-#define LOG_LEVEL_ERROR          "[ERROR]"
-#define LOG_LEVEL_DEBUG          "[DEBUG]"
+#define LOG_LEVEL_ERROR              "[ERROR]"
+#define LOG_LEVEL_DEBUG              "[DEBUG]"
+#define LOG_LEVEL_TIMING            "[TIMING]"
 
 #define KERNEL_SIZE_3                3
 #define KERNEL_SIZE_5                5
