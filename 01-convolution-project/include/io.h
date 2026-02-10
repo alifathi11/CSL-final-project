@@ -8,7 +8,6 @@
 //     // TODO: build output filename based on input params 
 // }
 
-
 int load_grayscale_image(
     const char *filename, 
     Image& image
@@ -17,4 +16,14 @@ int load_grayscale_image(
 int save_float_array_as_grayscale_image(
     const char *filename, 
     const Image& output
+);
+
+int load_rgb_image(
+    const char* filename,
+    Image& image
+);
+
+int save_float_array_as_rgb_image(
+    const char* filename,
+    const Image& image
 );

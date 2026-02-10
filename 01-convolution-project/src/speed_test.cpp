@@ -18,14 +18,16 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
     int engine_mode_def = ENGINE_MODE_BASELINE;
     int kernel_type_def = KERNEL_TYPE_SHARPEN;
     int kernel_size_def = KERNEL_SIZE_3;
+    int color_mode_def  = COLOR_MODE_RGB;
     
-    const std::string input_dir_def  = "./images/normal";
+    const std::string input_dir_def  = "./images/normal-small";
     const std::string output_dir_def = "";
 
     // Variables
     int engine_mode;
     int kernel_type; 
     int kernel_size;
+    int color_mode;
 
     char input_dir [MED_BUF_SIZE];
     char output_dir[MED_BUF_SIZE];
@@ -84,12 +86,25 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
         return res;
     }
 
+    OptionEntry color_modes[2];
+    color_modes[0].option_number = COLOR_MODE_RGB;
+    color_modes[0].option_name   = COLOR_MODE_RGB_STR;
+    color_modes[1].option_number = COLOR_MODE_GRAYSCALE;
+    color_modes[1].option_name   = COLOR_MODE_GRAYSCALE_STR;
+
+    res = read_option("Color Mode", color_modes, 2, stdin, &color_mode_def, &color_mode);
+    if (res != CODE_SUCCESS) {
+        print_err("Failed to read color mode", CODE_FAILURE_READ_INPUT);
+        return res;
+    }
+
     speed_test_params.engine_mode = engine_mode;
     speed_test_params.kernel_type = kernel_type;
     speed_test_params.kernel_size = kernel_size;
     speed_test_params.input_dir   = input_dir;
     speed_test_params.output_dir  = output_dir;
     speed_test_params.save_output = !speed_test_params.output_dir.empty();
+    speed_test_params.color_mode  = color_mode;
 
     return res;
 }
@@ -126,6 +141,7 @@ static int load_image_paths(
 
 
 static int load_images(
+    int color_mode,
     const std::string& dir, 
     std::vector<Image>& images
 ) {
@@ -142,10 +158,15 @@ static int load_images(
     }
 
     for (auto& image_path : image_paths) {
-        // TODO: currently we support just grayscale images
         Image image;
         
-        res = load_grayscale_image(
+        if (color_mode == COLOR_MODE_GRAYSCALE)
+            res = load_grayscale_image(
+                    image_path.c_str(), 
+                    image);
+        
+        if (color_mode == COLOR_MODE_RGB) 
+            res = load_rgb_image(
                     image_path.c_str(), 
                     image);
 
@@ -162,6 +183,7 @@ static int load_images(
 }
 
 static int save_images(
+    int color_mode,
     const std::string& dir, 
     const std::vector<Image>& images
 ) {
@@ -175,9 +197,15 @@ static int save_images(
         snprintf(output_filename, sizeof(output_filename), "%s/out%d.jpeg", 
                 dir.c_str(), output_number++);
 
-        res = save_float_array_as_grayscale_image(
-            output_filename, 
-            output);
+        if (color_mode == COLOR_MODE_GRAYSCALE)
+            res = save_float_array_as_grayscale_image(
+                output_filename, 
+                output);
+
+        if (color_mode == COLOR_MODE_RGB)
+            res = save_float_array_as_rgb_image(
+                output_filename, 
+                output);
 
         if (res != CODE_SUCCESS) {
             std::string err_msg = "Failed to save image: " + std::string(output_filename);
@@ -203,7 +231,11 @@ int run_speed_test(const SpeedTestParams& speed_test_params) {
     std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
     std::chrono::duration<double, std::milli> elapsed;
 
-    res = load_images(speed_test_params.input_dir, input_images);
+    res = load_images(
+        speed_test_params.color_mode, 
+        speed_test_params.input_dir, 
+        input_images);
+
     if (res != CODE_SUCCESS) {
         goto _exit;
     }
@@ -229,7 +261,7 @@ int run_speed_test(const SpeedTestParams& speed_test_params) {
         t0 = std::chrono::high_resolution_clock::now();
 
         Image output;
-        res = conv2d(
+        res = conv2d_channels(
                 speed_test_params.engine_mode,
                 conv2d_params,
                 output
@@ -247,7 +279,11 @@ int run_speed_test(const SpeedTestParams& speed_test_params) {
     }
 
     if (speed_test_params.save_output) {
-        res = save_images(speed_test_params.output_dir, output_images);
+        res = save_images(
+            speed_test_params.color_mode, 
+            speed_test_params.output_dir, 
+            output_images);
+            
         if (res != CODE_SUCCESS) {
             goto _exit;
         }

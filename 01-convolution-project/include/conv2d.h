@@ -4,6 +4,7 @@ struct Image {
     float *data;
     int height;
     int width;
+    int channels;
 };
 
 struct Kernel {
@@ -17,6 +18,12 @@ struct Conv2DParams {
     Kernel kernel;
     int stride;
 };
+
+int conv2d_channels(
+    int engine_mode, 
+    const Conv2DParams& params, 
+    Image& output
+);
 
 int conv2d(
     int engine_mode, 

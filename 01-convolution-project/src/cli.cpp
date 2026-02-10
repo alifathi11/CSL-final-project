@@ -13,6 +13,7 @@ static struct option long_options[] = {
     {"ksize",   required_argument, nullptr, 's'},
     {"input",   required_argument, nullptr, 'i'},
     {"output",  required_argument, nullptr, 'o'},
+    {"color",   required_argument, nullptr, 'c'},
     {"help",    no_argument,       nullptr, 'h'},
     {nullptr,   0,                 nullptr, 0}
 };
@@ -27,7 +28,8 @@ void print_help() {
     "  -k, --ktype    sharpen | blur | edge\n"
     "  -s, --ksize    kernel size (e.g. 3)\n"
     "  -i, --input    input file or directory\n"
-    "  -o, --output   output file or directory\n"
+    "  -o, --output   output file or directory (optional)\n"
+    "  -c, --color    grayscale | rgb (optional) (default = rgb)\n"
     "  -h, --help     show this help\n";
 }
 
@@ -62,6 +64,15 @@ static int get_kernel_type_by_name(const std::string& kernel_type_name) {
     return KERNEL_TYPE_NONE;
 }
 
+static int get_color_mode_by_name(const std::string& color_mode_name) {
+    if (color_mode_name == "grayscale")
+        return COLOR_MODE_GRAYSCALE;
+    if (color_mode_name == "rgb")
+        return COLOR_MODE_RGB;
+
+    return COLOR_MODE_NONE;
+}
+
 int parse_cli(int argc, char **argv, CLIArgs& args) {
     
     int opt; 
@@ -69,7 +80,7 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
     
     while ((opt = getopt_long(
         argc, argv,
-        "m:e:k:s:i:o:h",
+        "m:e:k:s:i:o:c:h",
         long_options, 
         &option_idx
     )) != -1) {
@@ -99,6 +110,10 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
                 args.save_output = !args.output.empty();
                 break;
 
+            case 'c':
+                args.color_mode = get_color_mode_by_name(optarg);
+                break;
+
             case 'h':
                 args.help = true;
                 break;
@@ -111,7 +126,7 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
     return CODE_SUCCESS;
 }
 
-int validate_cli(const CLIArgs& args) {
+int validate_cli(CLIArgs& args) {
 
     // TODO: reuse conv2d validation functions
 
@@ -141,8 +156,14 @@ int validate_cli(const CLIArgs& args) {
     }
 
     if (args.output.empty()) {
-        print_warn("Program will not save the output images"); 
+        print_warn("will not save the output images"); 
+        args.save_output = false;
     }
 
+    if (args.color_mode == COLOR_MODE_NONE) {
+        print_warn("will set color mode to RGB");
+        args.color_mode = COLOR_MODE_RGB;
+    }
+    
     return CODE_VALIDATION_OK;
 }

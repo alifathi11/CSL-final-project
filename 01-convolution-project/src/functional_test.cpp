@@ -15,14 +15,17 @@ int read_functional_test_input(FunctionalTestParams& functional_test_params) {
     int engine_mode_def = ENGINE_MODE_BASELINE;
     int kernel_type_def = KERNEL_TYPE_SHARPEN;
     int kernel_size_def = KERNEL_SIZE_3;
+    int color_mode_def = COLOR_MODE_RGB;
 
-    const std::string input_filename_def = "./images/grayscale/01.jpg";
+    const std::string input_filename_def = "./images/normal-small/01.jpeg";
     const std::string output_dir_def     = "./images/output";
+
 
     // Variables 
     int engine_mode;
     int kernel_type;
     int kernel_size;
+    int color_mode;
 
     char input_filename[MED_BUF_SIZE];
     char output_dir    [MED_BUF_SIZE];
@@ -81,26 +84,45 @@ int read_functional_test_input(FunctionalTestParams& functional_test_params) {
         return res;
     }
 
+    OptionEntry color_modes[2];
+    color_modes[0].option_number = COLOR_MODE_RGB;
+    color_modes[0].option_name   = COLOR_MODE_RGB_STR;
+    color_modes[1].option_number = COLOR_MODE_GRAYSCALE;
+    color_modes[1].option_name   = COLOR_MODE_GRAYSCALE_STR;
+
+    res = read_option("Color Mode", color_modes, 2, stdin, &color_mode_def, &color_mode);
+    if (res != CODE_SUCCESS) {
+        print_err("Failed to read color mode", CODE_FAILURE_READ_INPUT);
+        return res;
+    }
+
     functional_test_params.engine_mode    = engine_mode;
     functional_test_params.kernel_type    = kernel_type;
     functional_test_params.kernel_size    = kernel_size;
     functional_test_params.input_filename = input_filename;
     functional_test_params.output_dir     = output_dir;
     functional_test_params.save_output    = !functional_test_params.output_dir.empty();
+    functional_test_params.color_mode     = color_mode;
 
     return res;
 }
 
 static int load_image(
+    int color_mode,
     const std::string& image_filename,
     Image& image
 ) {
     int res = CODE_SUCCESS;
 
-    // TODO: currently we support just grayscale images
-    res = load_grayscale_image(
+    if (color_mode == COLOR_MODE_GRAYSCALE)
+        res = load_grayscale_image(
                 image_filename.c_str(),
-                image);
+                image); 
+        
+    if (color_mode == COLOR_MODE_RGB)
+        res = load_rgb_image(
+                image_filename.c_str(),
+                image); 
 
     if (res != CODE_SUCCESS) {
         std::string err_msg = "Failed to load image: " + image_filename;
@@ -112,6 +134,7 @@ static int load_image(
 }
 
 static int save_image(
+    int color_mode,
     const std::string& dir, 
     const Image& image
 ) {
@@ -123,9 +146,15 @@ static int save_image(
 
     snprintf(output_filename, sizeof(output_filename), "%s/out.jpeg", dir.c_str());
 
-    res = save_float_array_as_grayscale_image(
-            output_filename, 
-            image);
+    if (color_mode == COLOR_MODE_GRAYSCALE)
+        res = save_float_array_as_grayscale_image(
+                output_filename, 
+                image);
+
+    if (color_mode == COLOR_MODE_RGB)
+        res = save_float_array_as_rgb_image(
+                output_filename, 
+                image);
     
     if (res != CODE_SUCCESS) {
         std::string err_msg = "Failed to save image: " + std::string(output_filename);
@@ -151,9 +180,10 @@ int run_functional_test(const FunctionalTestParams& functional_test_params) {
     std::chrono::duration<double, std::milli> elapsed;
 
     // TODO: currently we support just grayscale images
-    res = load_image(
-                functional_test_params.input_filename, 
-                input_img);
+    res = load_image(   
+            functional_test_params.color_mode,
+            functional_test_params.input_filename, 
+            input_img);
 
     if (res != CODE_SUCCESS) {
         goto _exit;
@@ -174,7 +204,7 @@ int run_functional_test(const FunctionalTestParams& functional_test_params) {
 
     t0 = std::chrono::high_resolution_clock::now();
 
-    res = conv2d(
+    res = conv2d_channels(
             functional_test_params.engine_mode,
             conv2d_params,
             output_img);
@@ -184,7 +214,10 @@ int run_functional_test(const FunctionalTestParams& functional_test_params) {
     elapsed = t1 - t0; 
 
     if (functional_test_params.save_output) {
-        res = save_image(functional_test_params.output_dir, output_img);
+        res = save_image(
+                functional_test_params.color_mode,
+                functional_test_params.output_dir, 
+                output_img);
         if (res != CODE_SUCCESS) {
             goto _exit;
         }

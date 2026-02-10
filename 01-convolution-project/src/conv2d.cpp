@@ -1,4 +1,6 @@
+#include <cstring>
 #include <immintrin.h>
+#include <string>
 
 #include "conv2d.h"
 #include "constants.h"
@@ -82,6 +84,58 @@ static int conv2d_validation(
     }
 
     return CODE_VALIDATION_OK;
+}
+
+static float* channel_ptr(const Image& img, int c) {
+
+    if (c >= img.channels) 
+        return nullptr;
+
+    return img.data + c * img.height * img.width;
+}
+
+int conv2d_channels(
+    int engine_mode, 
+    const Conv2DParams& params, 
+    Image& output
+) {
+
+    int res = CODE_SUCCESS;
+
+    Image image   = params.image;
+    Kernel kernel = params.kernel;
+
+    int out_height = (image.height - kernel.size) / params.stride + 1;
+    int out_width  = (image.width - kernel.size) / params.stride + 1;
+    
+    output.height   = out_height;
+    output.width    = out_width;
+    output.channels = image.channels;
+    output.data     = new float[output.height * output.width * output.channels];
+
+    for (int c = 0; c < output.channels; c++) {
+        Conv2DParams ch_params = params;
+        ch_params.image.data = channel_ptr(image, c);
+
+        Image ch_out;
+        res = conv2d(engine_mode, ch_params, ch_out);
+
+        if (res != CODE_SUCCESS) {
+            std::string err_msg = "Operation failed on channel " + std::to_string(c);
+            print_err(err_msg.c_str(), res);
+            return res;
+        }
+
+        std::memcpy( 
+            channel_ptr(output, c),
+            ch_out.data,
+            output.height * output.width * sizeof(float)
+        );
+
+        delete[] ch_out.data;
+    }
+
+    return res;
 }
 
 int conv2d(

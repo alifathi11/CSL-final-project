@@ -2,17 +2,22 @@
 
 #include <string> 
 
+#include "constants.h"
+
 struct CLIArgs {
 
-    int run_mode;
+    int run_mode = RUN_MODE_NONE;
 
-    int engine_mode;
+    int engine_mode = ENGINE_MODE_NONE;
 
-    int kernel_type;
-    int kernel_size;
+    int kernel_type = KERNEL_TYPE_NONE;
+
+    int kernel_size = 0;
 
     std::string input;
     std::string output;
+
+    int color_mode = COLOR_MODE_NONE;
 
     bool help = false;
     bool save_output = false;
@@ -20,4 +25,4 @@ struct CLIArgs {
 
 void print_help();
 int parse_cli(int argc, char **argv, CLIArgs& args);
-int validate_cli(const CLIArgs& args);
+int validate_cli(CLIArgs& args);

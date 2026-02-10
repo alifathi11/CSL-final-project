@@ -85,6 +85,7 @@ static int run_cli(int argc, char **argv) {
             args.engine_mode, 
             args.kernel_type, 
             args.kernel_size, 
+            args.color_mode,
             args.input, 
             args.output,
             args.save_output
@@ -98,13 +99,14 @@ static int run_cli(int argc, char **argv) {
             args.engine_mode, 
             args.kernel_type,
             args.kernel_size,
+            args.color_mode,
             args.input, 
             args.output,
             args.save_output
         };
 
         res = run_speed_test(params);
-
+        
     }
        
     return res;

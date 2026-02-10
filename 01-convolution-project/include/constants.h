@@ -23,6 +23,19 @@
 #define ENGINE_MODE_AVX_STR             "AVX"
 
 // ========================================================================== 
+// ============================= Color Mode =================================
+// ==========================================================================
+#define COLOR_MODE_RGB                1
+#define COLOR_MODE_GRAYSCALE          2
+#define COLOR_MODE_NONE              -1
+
+#define COLOR_MODE_RGB_STR               "RGB"
+#define COLOR_MODE_GRAYSCALE_STR   "Grayscale"
+
+#define CHANNELS_RGB                  3
+#define CHANNELS_GRAYSCALE            1
+
+// ========================================================================== 
 // ====================== Functions Return Code =============================
 // ==========================================================================
 #define CODE_SUCCESS                     0

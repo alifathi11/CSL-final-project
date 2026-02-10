@@ -6,6 +6,8 @@ struct FunctionalTestParams {
     int engine_mode; 
     int kernel_type;
     int kernel_size;
+    int color_mode;
+    
     std::string input_filename;
     std::string output_dir;
 

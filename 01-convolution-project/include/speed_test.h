@@ -6,6 +6,8 @@ struct SpeedTestParams {
     int engine_mode;
     int kernel_type;
     int kernel_size;
+    int color_mode;
+    
     std::string input_dir;
     std::string output_dir; 
 
