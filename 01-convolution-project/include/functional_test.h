@@ -10,4 +10,5 @@ struct FunctionalTestParams {
     std::string output_dir;
 };
 
-int run_functional_test();
+int read_functional_test_input(FunctionalTestParams& functional_test_params);
+int run_functional_test(const FunctionalTestParams& functional_test_params);

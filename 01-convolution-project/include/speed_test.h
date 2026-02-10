@@ -10,4 +10,5 @@ struct SpeedTestParams {
     std::string output_dir; 
 };
 
-int run_speed_test();
+int read_speed_test_params(SpeedTestParams& speed_test_params);
+int run_speed_test(const SpeedTestParams& speed_test_params);

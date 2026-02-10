@@ -1,26 +1,52 @@
+#include "cli.h"
 #include "constants.h"
 #include "functional_test.h"
 #include "speed_test.h"
 #include "utility.h"
 
-// static void print_usage(const char *program_name) {
-//     fprintf(stderr, "Usage:\n");
-//     fprintf(stderr, "%s <input-image-path> <output-image-path>\n", program_name);
-// }
+static int read_input_and_run_functional_test() {
+
+    int res = CODE_SUCCESS;
+
+    FunctionalTestParams params;
+    
+    res = read_functional_test_input(params);
+    if (res != CODE_SUCCESS)
+        return res;
+
+    res = run_functional_test(params);
+    
+    return res;
+}
+
+static int read_input_and_run_speed_test() {
+    
+    int res = CODE_SUCCESS;
+
+    SpeedTestParams params;
+
+    res = read_speed_test_params(params);
+    if (res != CODE_SUCCESS) 
+        return res;
+
+    res = run_speed_test(params);
+    
+    return res;
+}
 
 static int run_interactive() {
 
     int res = CODE_SUCCESS;
 
-    int option_def = CODE_SPEED_TEST;
+    int option_def = RUN_MODE_SPEED_TEST;
 
     int option;
 
     OptionEntry options[2];
-    options[0].option_number = CODE_FUNCTIONAL_TEST;
-    options[0].option_name   = FUNCTIONAL_TEST_STR;
-    options[1].option_number = CODE_SPEED_TEST;
-    options[1].option_name   = SPEED_TEST_STR;
+    options[0].option_number = RUN_MODE_FUNCTIONAL_TEST;
+    options[0].option_name   = RUN_MODE_FUNCTIONAL_TEST_STR;
+    options[1].option_number = RUN_MODE_SPEED_TEST;
+    options[1].option_name   = RUN_MODE_SPEED_TEST_STR;
 
     res = read_option("Option", options, 2, stdin, &option_def, &option);
     if (res != CODE_SUCCESS) {
@@ -28,31 +54,58 @@ static int run_interactive() {
         return res;
     }
 
-    switch (option) {
-        case CODE_FUNCTIONAL_TEST: 
-            res = run_functional_test();
-            break;
-
-        case CODE_SPEED_TEST:
-            res = run_speed_test();
-            break;
-
-        default:
-            print_err("Invalid option", CODE_FAILURE_INVALID_INPUT);
-            return CODE_FAILURE;
-    }
+    if (option == RUN_MODE_FUNCTIONAL_TEST) 
+        res = read_input_and_run_functional_test();
+    else if (option == RUN_MODE_SPEED_TEST)
+        res = read_input_and_run_speed_test();
 
     return res;
 }
 
 static int run_cli(int argc, char **argv) {
-    // TODO: implement 
 
-    // suppress warning
-    if (argc == 1 || !argv) 
-        return CODE_FAILURE_INVALID_ARG;
+    int res = CODE_SUCCESS;
 
-    return CODE_SUCCESS;
+    CLIArgs args;
+
+    res = parse_cli(argc, argv, args);
+    if (res != CODE_SUCCESS || args.help) {
+        print_help();
+        return res;
+    }
+
+    res = validate_cli(args);
+    if (res != CODE_VALIDATION_OK) {
+        return res;
+    }
+
+    if (args.run_mode == RUN_MODE_FUNCTIONAL_TEST) {
+
+        FunctionalTestParams params = {
+            args.engine_mode, 
+            args.kernel_type, 
+            args.kernel_size, 
+            args.input, 
+            args.output
+        };
+
+        res = run_functional_test(params);
+    }
+    else if (args.run_mode == RUN_MODE_SPEED_TEST) {
+
+        SpeedTestParams params = {
+            args.engine_mode, 
+            args.kernel_type,
+            args.kernel_size,
+            args.input, 
+            args.output
+        };
+
+        res = run_speed_test(params);
+
+    }
+       
+    return res;
 }
 
 int main(int argc, char **argv) {

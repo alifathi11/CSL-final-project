@@ -7,7 +7,7 @@
 #include "utility.h"
 #include "constants.h"
 
-static int read_functional_test_input(FunctionalTestParams& functional_test_params) {
+int read_functional_test_input(FunctionalTestParams& functional_test_params) {
 
     int res = CODE_SUCCESS;
 
@@ -135,7 +135,7 @@ static int save_image(
     return res;
 }
 
-int run_functional_test() {
+int run_functional_test(const FunctionalTestParams& functional_test_params) {
 
     int res = CODE_SUCCESS;
 
@@ -144,16 +144,10 @@ int run_functional_test() {
 
     int stride = 1;
 
-    FunctionalTestParams functional_test_params; 
     Conv2DParams conv2d_params;
 
     std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
     std::chrono::duration<double, std::milli> elapsed;
-
-    res = read_functional_test_input(functional_test_params);
-    if (res != CODE_SUCCESS) {
-        goto _exit;
-    }
 
     // TODO: currently we support just grayscale images
     res = load_image(

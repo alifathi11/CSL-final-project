@@ -10,7 +10,7 @@
 #include "kernel_factory.h"
 #include "utility.h"
 
-static int read_speed_test_params(SpeedTestParams& speed_test_params) {
+int read_speed_test_params(SpeedTestParams& speed_test_params) {
 
     int res = CODE_SUCCESS;
 
@@ -188,11 +188,9 @@ static int save_images(
     return res;
 }
 
-int run_speed_test() {
+int run_speed_test(const SpeedTestParams& speed_test_params) {
 
     int res = CODE_SUCCESS;
-
-    SpeedTestParams speed_test_params;
 
     std::vector<Image> input_images;
     std::vector<Image> output_images;
@@ -203,11 +201,6 @@ int run_speed_test() {
 
     std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
     std::chrono::duration<double, std::milli> elapsed;
-
-    res = read_speed_test_params(speed_test_params);
-    if (res != CODE_SUCCESS) {
-        goto _exit;
-    }
 
     res = load_images(speed_test_params.input_dir, input_images);
     if (res != CODE_SUCCESS) {
@@ -262,8 +255,10 @@ int run_speed_test() {
 _exit: 
     for (auto& image : input_images) 
         delete[] image.data;
+
     for (auto& image : output_images)
         delete[] image.data;
+
     delete[] kernel.data;
 
     return res;

@@ -28,6 +28,7 @@ SOURCES  := \
 	$(SRC_DIR)/utility.cpp \
 	$(SRC_DIR)/kernel_factory.cpp \
 	$(SRC_DIR)/io.cpp \
+	$(SRC_DIR)/cli.cpp
 
 
 OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
