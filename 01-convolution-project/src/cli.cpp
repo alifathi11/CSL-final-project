@@ -58,8 +58,10 @@ static int get_kernel_type_by_name(const std::string& kernel_type_name) {
         return KERNEL_TYPE_SHARPEN;
     if (kernel_type_name == "blur")
         return KERNEL_TYPE_BLUR;
-    if (kernel_type_name == "edge")
-        return KERNEL_TYPE_EDGE;
+    if (kernel_type_name == "sobel_x")
+        return KERNEL_TYPE_SOBEL_X;
+    if (kernel_type_name == "sobel_y")
+        return KERNEL_TYPE_SOBEL_Y;
 
     return KERNEL_TYPE_NONE;
 }

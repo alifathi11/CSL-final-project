@@ -33,7 +33,12 @@ static bool is_valid_kernel(const Kernel& kernel) {
     if (
         !kernel.data ||
         !(kernel.size == KERNEL_SIZE_3 || kernel.size == KERNEL_SIZE_5 || kernel.size == KERNEL_SIZE_7) ||
-        !(kernel.type == KERNEL_TYPE_SHARPEN || kernel.type == KERNEL_TYPE_BLUR || kernel.type == KERNEL_TYPE_EDGE)
+        !(
+            kernel.type == KERNEL_TYPE_SHARPEN || 
+            kernel.type == KERNEL_TYPE_BLUR    || 
+            kernel.type == KERNEL_TYPE_SOBEL_X || 
+            kernel.type == KERNEL_TYPE_SOBEL_Y
+        )
     ) {
         return false;
     }

@@ -65,12 +65,14 @@
 // ==========================================================================
 #define KERNEL_TYPE_SHARPEN          1
 #define KERNEL_TYPE_BLUR             2
-#define KERNEL_TYPE_EDGE             3
+#define KERNEL_TYPE_SOBEL_X          3
+#define KERNEL_TYPE_SOBEL_Y          4
 #define KERNEL_TYPE_NONE            -1
 
-#define KERNEL_TYPE_SHARPEN_STR   "Sharpen"
-#define KERNEL_TYPE_BLUR_STR         "Blur"
-#define KERNEL_TYPE_EDGE_STR         "Edge"
+#define KERNEL_TYPE_SHARPEN_STR     "Sharpen"
+#define KERNEL_TYPE_BLUR_STR           "Blur"
+#define KERNEL_TYPE_SOBEL_X_STR     "Sobel X"
+#define KERNEL_TYPE_SOBEL_Y_STR     "Sobel Y"
 
 // ========================================================================== 
 // ============================= Kernel Size ================================
