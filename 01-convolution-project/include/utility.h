@@ -11,6 +11,7 @@ struct OptionEntry
 
 void print_benchmark(int engine_code, double elapsed);
 void print_err(const char *msg, int errcode);
+void print_warn(const char *msg);
 int safe_atoi(const char *s, int *out);
 int safe_atox(const char *s, unsigned int *out);
 bool is_hex_string(const char *s);

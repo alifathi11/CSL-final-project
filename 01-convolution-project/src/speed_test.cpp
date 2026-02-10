@@ -19,8 +19,8 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
     int kernel_type_def = KERNEL_TYPE_SHARPEN;
     int kernel_size_def = KERNEL_SIZE_3;
     
-    const std::string input_dir_def  = "./images/grayscale";
-    const std::string output_dir_def = "./images/output";
+    const std::string input_dir_def  = "./images/normal";
+    const std::string output_dir_def = "";
 
     // Variables
     int engine_mode;
@@ -72,15 +72,15 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
         return res;
     }
 
-    res = read_param("Output Directory", stdin, output_dir_def.c_str(), output_dir, sizeof(output_dir));
+    res = read_param("Input Directory", stdin, input_dir_def.c_str(), input_dir, sizeof(input_dir));
     if (res != CODE_SUCCESS) {
-        print_err("Failed to read output directory", CODE_FAILURE_READ_INPUT);
+        print_err("Failed to read input directory", CODE_FAILURE_READ_INPUT);
         return res;
     }
 
-    res = read_param("Images Directory", stdin, input_dir_def.c_str(), input_dir, sizeof(input_dir));
+    res = read_param("Output Directory", stdin, output_dir_def.c_str(), output_dir, sizeof(output_dir));
     if (res != CODE_SUCCESS) {
-        print_err("Failed to read images directory", CODE_FAILURE_READ_INPUT);
+        print_err("Failed to read output directory", CODE_FAILURE_READ_INPUT);
         return res;
     }
 
@@ -89,6 +89,7 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
     speed_test_params.kernel_size = kernel_size;
     speed_test_params.input_dir   = input_dir;
     speed_test_params.output_dir  = output_dir;
+    speed_test_params.save_output = !speed_test_params.output_dir.empty();
 
     return res;
 }
@@ -245,9 +246,11 @@ int run_speed_test(const SpeedTestParams& speed_test_params) {
         output_images.push_back(output);
     }
 
-    res = save_images(speed_test_params.output_dir, output_images);
-    if (res != CODE_SUCCESS) {
-        goto _exit;
+    if (speed_test_params.save_output) {
+        res = save_images(speed_test_params.output_dir, output_images);
+        if (res != CODE_SUCCESS) {
+            goto _exit;
+        }
     }
 
     print_benchmark(speed_test_params.engine_mode, elapsed.count());

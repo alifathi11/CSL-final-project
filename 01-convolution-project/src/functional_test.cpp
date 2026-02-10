@@ -86,6 +86,7 @@ int read_functional_test_input(FunctionalTestParams& functional_test_params) {
     functional_test_params.kernel_size    = kernel_size;
     functional_test_params.input_filename = input_filename;
     functional_test_params.output_dir     = output_dir;
+    functional_test_params.save_output    = !functional_test_params.output_dir.empty();
 
     return res;
 }
@@ -182,9 +183,11 @@ int run_functional_test(const FunctionalTestParams& functional_test_params) {
     
     elapsed = t1 - t0; 
 
-    res = save_image(functional_test_params.output_dir, output_img);
-    if (res != CODE_SUCCESS) {
-        goto _exit;
+    if (functional_test_params.save_output) {
+        res = save_image(functional_test_params.output_dir, output_img);
+        if (res != CODE_SUCCESS) {
+            goto _exit;
+        }
     }
 
     print_benchmark(functional_test_params.engine_mode, elapsed.count());

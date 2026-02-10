@@ -8,6 +8,8 @@ struct SpeedTestParams {
     int kernel_size;
     std::string input_dir;
     std::string output_dir; 
+
+    bool save_output = false;
 };
 
 int read_speed_test_params(SpeedTestParams& speed_test_params);

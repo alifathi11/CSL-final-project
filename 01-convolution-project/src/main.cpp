@@ -86,7 +86,8 @@ static int run_cli(int argc, char **argv) {
             args.kernel_type, 
             args.kernel_size, 
             args.input, 
-            args.output
+            args.output,
+            args.save_output
         };
 
         res = run_functional_test(params);
@@ -98,7 +99,8 @@ static int run_cli(int argc, char **argv) {
             args.kernel_type,
             args.kernel_size,
             args.input, 
-            args.output
+            args.output,
+            args.save_output
         };
 
         res = run_speed_test(params);

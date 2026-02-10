@@ -96,6 +96,7 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
             
             case 'o':
                 args.output = optarg; 
+                args.save_output = !args.output.empty();
                 break;
 
             case 'h':
@@ -140,8 +141,7 @@ int validate_cli(const CLIArgs& args) {
     }
 
     if (args.output.empty()) {
-        print_err("Output is required", CODE_FAILURE_ARG_REQUIRED);
-        return CODE_FAILURE_ARG_REQUIRED; 
+        print_warn("Program will not save the output images"); 
     }
 
     return CODE_VALIDATION_OK;

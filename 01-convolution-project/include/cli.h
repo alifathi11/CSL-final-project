@@ -15,6 +15,7 @@ struct CLIArgs {
     std::string output;
 
     bool help = false;
+    bool save_output = false;
 };
 
 void print_help();

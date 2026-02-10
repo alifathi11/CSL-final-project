@@ -6,3 +6,4 @@ obj
 *.jpeg
 *.jpg
 *.png
+.ipynb_checkpoints

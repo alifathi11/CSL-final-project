@@ -21,11 +21,15 @@ static std::string get_engine_name(int engine_code) {
 
 void print_benchmark(int engine_code, double elapsed) {
     std::string engine_name = get_engine_name(engine_code);
-    fprintf(stderr, "%s Engine: %s took %lf ms\n", LOG_LEVEL_TIMING, engine_name.c_str(), elapsed);
+    fprintf(stdout, "%s Engine: %s took %lf ms\n", LOG_LEVEL_TIMING, engine_name.c_str(), elapsed);
 }
 
 void print_err(const char *msg, int errcode) {
     fprintf(stderr, "%s %s (CODE: %d)\n", LOG_LEVEL_ERROR, msg, errcode);
+}
+
+void print_warn(const char *msg) {
+    fprintf(stderr, "%s %s\n", LOG_LEVEL_WARNING, msg);
 }
 
 int safe_atoi(const char *s, int *out)

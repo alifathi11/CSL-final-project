@@ -8,6 +8,8 @@ struct FunctionalTestParams {
     int kernel_size;
     std::string input_filename;
     std::string output_dir;
+
+    bool save_output = false;
 };
 
 int read_functional_test_input(FunctionalTestParams& functional_test_params);
