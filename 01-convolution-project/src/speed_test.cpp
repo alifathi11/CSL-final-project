@@ -46,13 +46,19 @@ int read_speed_test_params(SpeedTestParams& speed_test_params) {
         return res;
     }
 
-    OptionEntry kernel_types[2];
+    OptionEntry kernel_types[5];
     kernel_types[0].option_number = KERNEL_TYPE_SHARPEN;
     kernel_types[0].option_name   = KERNEL_TYPE_SHARPEN_STR;
-    kernel_types[1].option_number = KERNEL_TYPE_BLUR;
-    kernel_types[1].option_name   = KERNEL_TYPE_BLUR_STR;
+    kernel_types[1].option_number = KERNEL_TYPE_BOX_BLUR;
+    kernel_types[1].option_name   = KERNEL_TYPE_BOX_BLUR_STR;
+    kernel_types[2].option_number = KERNEL_TYPE_GAUSSIAN_BLUR;
+    kernel_types[2].option_name   = KERNEL_TYPE_GAUSSIAN_BLUR_STR;
+    kernel_types[3].option_number = KERNEL_TYPE_SOBEL_X;
+    kernel_types[3].option_name   = KERNEL_TYPE_SOBEL_X_STR;
+    kernel_types[4].option_number = KERNEL_TYPE_SOBEL_Y;
+    kernel_types[4].option_name   = KERNEL_TYPE_SOBEL_Y_STR;
 
-    res = read_option("Kernel Type", kernel_types, 2, stdin, &kernel_type_def, &kernel_type);
+    res = read_option("Kernel Type", kernel_types, 5, stdin, &kernel_type_def, &kernel_type);
     if (res != CODE_SUCCESS) {
         print_err("Failed to read kernel type", CODE_FAILURE_READ_INPUT);
         return res;

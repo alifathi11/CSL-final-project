@@ -24,9 +24,3 @@ int conv2d_channels(
     const Conv2DParams& params, 
     Image& output
 );
-
-int conv2d(
-    int engine_mode, 
-    const Conv2DParams& params, 
-    Image& output
-);

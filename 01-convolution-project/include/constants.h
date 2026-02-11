@@ -64,15 +64,17 @@
 // ============================= Kernel Type ================================
 // ==========================================================================
 #define KERNEL_TYPE_SHARPEN          1
-#define KERNEL_TYPE_BLUR             2
-#define KERNEL_TYPE_SOBEL_X          3
-#define KERNEL_TYPE_SOBEL_Y          4
+#define KERNEL_TYPE_BOX_BLUR         2
+#define KERNEL_TYPE_GAUSSIAN_BLUR    3
+#define KERNEL_TYPE_SOBEL_X          4
+#define KERNEL_TYPE_SOBEL_Y          5
 #define KERNEL_TYPE_NONE            -1
 
-#define KERNEL_TYPE_SHARPEN_STR     "Sharpen"
-#define KERNEL_TYPE_BLUR_STR           "Blur"
-#define KERNEL_TYPE_SOBEL_X_STR     "Sobel X"
-#define KERNEL_TYPE_SOBEL_Y_STR     "Sobel Y"
+#define KERNEL_TYPE_SHARPEN_STR               "Sharpen"
+#define KERNEL_TYPE_BOX_BLUR_STR             "Box Blur"
+#define KERNEL_TYPE_GAUSSIAN_BLUR_STR   "Gaussian Blur"
+#define KERNEL_TYPE_SOBEL_X_STR               "Sobel X"
+#define KERNEL_TYPE_SOBEL_Y_STR               "Sobel Y"
 
 // ========================================================================== 
 // ============================= Kernel Size ================================

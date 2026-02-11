@@ -6,6 +6,12 @@
 #include "constants.h"
 #include "utility.h"
 
+static int conv2d(
+    int engine_mode, 
+    const Conv2DParams& params, 
+    Image& output
+);
+
 static int conv2d_baseline(
     const Conv2DParams& params, 
     Image& output
@@ -34,9 +40,10 @@ static bool is_valid_kernel(const Kernel& kernel) {
         !kernel.data ||
         !(kernel.size == KERNEL_SIZE_3 || kernel.size == KERNEL_SIZE_5 || kernel.size == KERNEL_SIZE_7) ||
         !(
-            kernel.type == KERNEL_TYPE_SHARPEN || 
-            kernel.type == KERNEL_TYPE_BLUR    || 
-            kernel.type == KERNEL_TYPE_SOBEL_X || 
+            kernel.type == KERNEL_TYPE_SHARPEN       || 
+            kernel.type == KERNEL_TYPE_BOX_BLUR      ||
+            kernel.type == KERNEL_TYPE_GAUSSIAN_BLUR ||
+            kernel.type == KERNEL_TYPE_SOBEL_X       || 
             kernel.type == KERNEL_TYPE_SOBEL_Y
         )
     ) {
@@ -107,6 +114,15 @@ int conv2d_channels(
 
     int res = CODE_SUCCESS;
 
+    // TODO: Temporary 
+    if (
+        params.kernel.size != KERNEL_SIZE_3 && 
+        engine_mode != ENGINE_MODE_BASELINE
+    ) {
+        engine_mode = ENGINE_MODE_BASELINE;
+        print_warn("Only 3x3 kernels are supported in SSE/AVX engines. Falling back to baseline engine.");
+    }
+
     Image image   = params.image;
     Kernel kernel = params.kernel;
 
@@ -143,7 +159,7 @@ int conv2d_channels(
     return res;
 }
 
-int conv2d(
+static int conv2d(
     int engine_mode, 
     const Conv2DParams& params, 
     Image& output

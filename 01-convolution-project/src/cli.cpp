@@ -25,7 +25,7 @@ void print_help() {
     "  -m --mode functional | speed\n\n"
     "Options:\n"
     "  -e, --engine   baseline | sse | avx\n"
-    "  -k, --ktype    sharpen | blur | edge\n"
+    "  -k, --ktype    sharpen | box_blur | gaussian_blur | sobel_x | sobel_y\n"
     "  -s, --ksize    kernel size (e.g. 3)\n"
     "  -i, --input    input file or directory\n"
     "  -o, --output   output file or directory (optional)\n"
@@ -56,8 +56,10 @@ static int get_engine_mode_by_name(const std::string& engine_mode_name) {
 static int get_kernel_type_by_name(const std::string& kernel_type_name) {
     if (kernel_type_name == "sharpen")
         return KERNEL_TYPE_SHARPEN;
-    if (kernel_type_name == "blur")
-        return KERNEL_TYPE_BLUR;
+    if (kernel_type_name == "box_blur")
+        return KERNEL_TYPE_BOX_BLUR;
+    if (kernel_type_name == "gaussian_blur")
+        return KERNEL_TYPE_GAUSSIAN_BLUR;
     if (kernel_type_name == "sobel_x")
         return KERNEL_TYPE_SOBEL_X;
     if (kernel_type_name == "sobel_y")
