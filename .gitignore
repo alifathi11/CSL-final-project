@@ -8,6 +8,8 @@ obj
 *.png
 images
 .ipynb_checkpoints
+build
+*.jks
 
 .DS_Store
 .AppleDouble
