@@ -1,12 +1,14 @@
 #!/bin/bash
 set -e
 SDK_PATH=/home/ali/Android/Sdk
+ANDROID_JAR=$SDK_PATH/platforms/android-34/android.jar
 BUILD_DIR=build
 
 mkdir -p $BUILD_DIR/classes
 
-javac -source 1.8 -target 1.8 -bootclasspath $SDK_PATH/platforms/android-34/android.jar \
-    -d $BUILD_DIR/classes ../app/src/main/java/com/example/game/MainActivity.java
+javac $(find ../app/src/main/java -name "*.java") \
+      -d build/classes \
+      -classpath $ANDROID_JAR
 
 cd $BUILD_DIR/classes
 jar cf ../classes.jar *
