@@ -13,7 +13,7 @@ public class GameView extends View {
 
     private float gravity = 2000f;
 
-    private boolean gameOver = false;
+    private boolean gameOver  = false;
     private boolean playerWon = false;
 
     private int winHitCount   = 10;
@@ -37,13 +37,15 @@ public class GameView extends View {
     private Paint textPaintWhite;
     private Paint textPaintRed;
 
-
     private long lastTime;
 
     private float currentSpeedMultiplier = 1.0f;
     private float maxSpeedMultiplier = 2.0f;
     private float speedIncreaseStep = 0.1f;
 
+    static {
+        System.loadLibrary("game"); 
+    }
 
     public GameView(Context context) {
         super(context);
@@ -76,8 +78,8 @@ public class GameView extends View {
         for (int i = 0; i < ballCount; i++) {
             posX[i] = rnd.nextFloat() * 800;
             posY[i] = rnd.nextFloat() * 1200;
-            velX[i] = (rnd.nextFloat() - 0.5f) * 4000;
-            velY[i] = (rnd.nextFloat() - 0.5f) * 4000;
+            velX[i] = (rnd.nextFloat() - 0.5f) * 2000;
+            velY[i] = (rnd.nextFloat() - 0.5f) * 2000;
 
             alive[i] = true;
         }
@@ -113,7 +115,7 @@ public class GameView extends View {
             endPaint.setTextAlign(Paint.Align.CENTER);
             endPaint.setAntiAlias(true);
 
-            float cx = getWidth() / 2f;
+            float cx = getWidth()  / 2f;
             float cy = getHeight() / 2f;
 
             String msg = playerWon ? "You Win!" : "Game Over";
@@ -169,94 +171,10 @@ public class GameView extends View {
         return true;
     }
 
-    private void handleBallCollisions() {
+    private void nativeUpdateWrapper(float dt) {
+        if (getWidth() == 0 || getHeight() == 0) return;
 
-        float collisionPadding = 15f;
-        float minDist = radius * 2f + collisionPadding;
-        float minDistSq = minDist * minDist;
-
-        for (int i = 0; i < ballCount; i++) {
-            if (!alive[i]) continue;
-
-            for (int j = i + 1; j < ballCount; j++) {
-
-                if (!alive[j]) continue;
-
-                float dx = posX[j] - posX[i];
-                float dy = posY[j] - posY[i];
-                
-                float distSq = dx * dx + dy * dy;
-
-                if (distSq <= minDistSq) {
-
-                    float tempVX = velX[i];
-                    float tempVY = velY[i];
-
-                    velX[i] = velX[j];
-                    velY[i] = velY[j];
-
-                    velX[j] = tempVX;
-                    velY[j] = tempVY;
-
-                    float dist = (float)Math.sqrt(distSq);
-
-                    if (dist != 0f) {
-                        float overlap = minDist - dist;
-
-                        float nx = dx / dist;
-                        float ny = dy / dist;
-
-                        posX[i] -= nx * overlap * 0.5f;
-                        posY[i] -= ny * overlap * 0.5f;
-
-                        posX[j] += nx * overlap * 0.5f;
-                        posY[j] += ny * overlap * 0.5f;
-                    }
-
-                }
-            }
-        }
-    }
-
-    private void handleEdgeCollisions() {
-
-        float w = getWidth();
-        float h = getHeight();
-
-        for (int i = 0; i < ballCount; i++) {
-
-            if (!alive[i]) continue;
-
-            if (posX[i] < radius) {
-                posX[i] = radius;
-                velX[i] = -velX[i];
-            }
-
-            else if (posX[i] > w - radius) {
-                posX[i] = w - radius;
-                velX[i] = -velX[i];
-            }
-
-            if (posY[i] < radius) {
-                posY[i] = radius;
-                velY[i] = -velY[i];
-            }
-
-            else if (posY[i] > h - radius) {
-                posY[i] = h - radius;
-                velY[i] = -velY[i];
-            }
-        }
-    }
-
-    private void handleBallMovement(float dt) {
-        
-        for  (int i = 0; i < ballCount; i++) {
-            if (!alive[i]) continue;
-
-            posX[i] += velX[i] * dt;
-            posY[i] += velY[i] * dt;
-        }
+        nativeUpdate(getWidth(), getHeight(), posX, posY, velX, velY, alive, radius, dt, gameOver);
     }
 
     private void update(float dt) {
@@ -266,10 +184,7 @@ public class GameView extends View {
             return;
         }
 
-        handleBallMovement(dt);
-
-        handleEdgeCollisions();
-        handleBallCollisions();
+        nativeUpdateWrapper(dt);
 
         checkEnd();
     }
@@ -362,7 +277,6 @@ public class GameView extends View {
 
     }
 
-
     private void checkEnd() {
         if (hitCount >= winHitCount) {
             gameOver  = true;
@@ -372,4 +286,18 @@ public class GameView extends View {
             playerWon = false;
         }
     }
+
+    private native void nativeUpdate(
+        int screenWidth,
+        int screenHeight,
+        float[] posX,
+        float[] posY,
+        float[] velX,
+        float[] velY,
+        boolean[] alive,
+        float radius,
+        float dt,
+        boolean gameOver
+    );
+
 }
