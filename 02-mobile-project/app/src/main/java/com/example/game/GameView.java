@@ -9,6 +9,9 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Color;
 
+import android.media.SoundPool;
+import android.media.AudioAttributes;
+
 public class GameView extends View {
 
     private float gravity = 2000f;
@@ -39,6 +42,10 @@ public class GameView extends View {
     private Paint endPaint;
 
     private long lastTime;
+
+    private SoundPool soundPool;
+    private int popSoundId;
+    private boolean soundLoaded = false;
 
     static {
         System.loadLibrary("game"); 
@@ -87,6 +94,25 @@ public class GameView extends View {
         }
 
         lastTime = System.nanoTime();
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build();
+
+        soundPool = new SoundPool.Builder()
+            .setMaxStreams(5)
+            .setAudioAttributes(audioAttributes)
+            .build();
+
+        popSoundId = soundPool.load(context, R.raw.pop, 1);
+
+        soundPool.setOnLoadCompleteListener((sp, sampleId, status) -> {
+            if (status == 0) {
+                soundLoaded = true;
+            }
+        });
+
     }
 
     @Override 
@@ -168,6 +194,11 @@ public class GameView extends View {
                 alive[i] = false;
                 nativeRespawnBallWrapper(i);
 
+                if (soundLoaded) {
+                    float rate = 0.9f + new Random().nextFloat() * 0.2f;
+                    soundPool.play(popSoundId, 1f, 1f, 1, 0, rate);
+                }
+
                 hitCount++;
                 hitSomething = true;
 
@@ -220,6 +251,15 @@ public class GameView extends View {
         } else if (missCount >= loseMissCount) {
             gameOver  = true;
             playerWon = false;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
         }
     }
 
