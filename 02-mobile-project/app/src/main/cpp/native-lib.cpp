@@ -1,15 +1,25 @@
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 #include <jni.h>
 
 extern "C" {
 
-// prototype
+struct RandInit {
+    RandInit() { std::srand(std::time(nullptr)); }
+} randInit;
+
+float currentSpeedMultiplier = 1.0f;
+float maxSpeedMultiplier     = 2.0f;
+float speedIncreaseStep      = 0.1f;
+
 JNIEXPORT void JNICALL
 Java_com_example_game_GameView_nativeUpdate(
         JNIEnv* env,
         jobject thiz,
-        jint screenWidth, 
-        jint screenHeight,
+        jfloat screenWidth, 
+        jfloat screenHeight,
         jfloatArray posXArr,
         jfloatArray posYArr,
         jfloatArray velXArr,
@@ -33,10 +43,6 @@ Java_com_example_game_GameView_nativeUpdate(
 
     for (int i = 0; i < count; i++) {
         if (!alive[i]) continue;
-
-        if (gameOver) {
-            velY[i] += 2000.0f * dt;
-        }
 
         posX[i] += velX[i] * dt;
         posY[i] += velY[i] * dt;
@@ -93,13 +99,126 @@ JNIEXPORT void JNICALL
 Java_com_example_game_GameView_nativeRespawnBall(
         JNIEnv* env,
         jobject thiz,
+        jfloat screenWidth,
+        jfloat screenHeight, 
+        jfloatArray posXArr,
+        jfloatArray posYArr,
+        jfloatArray velXArr,
+        jfloatArray velYArr,
+        jbooleanArray aliveArr,
         jint index,
-        jfloat width,
-        jfloat height,
-        jfloat radius,
-        jfloat currentSpeedMultiplier) 
+        jfloat radius) 
 {
-    
+
+    jint count = env->GetArrayLength(posXArr);
+    if (index < 0 || index >= count) return;
+
+    jfloat* posX = env->GetFloatArrayElements(posXArr, nullptr);
+    jfloat* posY = env->GetFloatArrayElements(posYArr, nullptr);
+    jfloat* velX = env->GetFloatArrayElements(velXArr, nullptr);
+    jfloat* velY = env->GetFloatArrayElements(velYArr, nullptr);
+
+    jboolean* alive = env->GetBooleanArrayElements(aliveArr, nullptr);
+
+    if (currentSpeedMultiplier < maxSpeedMultiplier) {
+        currentSpeedMultiplier = std::min(currentSpeedMultiplier + speedIncreaseStep, maxSpeedMultiplier);
+        speedIncreaseStep *= 0.8f;
+    }
+
+    int side = std::rand() % 4;
+
+    float w = screenWidth;
+    float h = screenHeight;
+
+    float baseSpeedX = ((float)std::rand() / (float)RAND_MAX) * 2000.f + 1000.f;
+    float baseSpeedY = ((float)std::rand() / (float)RAND_MAX) * 2000.f + 1000.f;
+
+    float speedX = baseSpeedX * currentSpeedMultiplier;
+    float speedY = baseSpeedY * currentSpeedMultiplier;
+
+    switch (side) {
+        case 0: // top
+            posX[index] = ((float)std::rand() / (float)RAND_MAX) * w;
+            posY[index] = -radius;
+            velX[index] = ((float)std::rand() / (float)RAND_MAX - 0.5f) * speedX;
+            velY[index] = std::fabs(speedY);
+            break;
+
+        case 1: // bottom
+            posX[index] = ((float)std::rand() / (float)RAND_MAX) * w;
+            posY[index] = h + radius;
+            velX[index] = ((float)std::rand() / (float)RAND_MAX - 0.5f) * speedX;
+            velY[index] = -std::fabs(speedY);
+            break;
+
+        case 2: // left
+            posX[index] = -radius;
+            posY[index] = ((float)std::rand() / (float)RAND_MAX) * h;
+            velX[index] = std::fabs(speedX);
+            velY[index] = ((float)std::rand() / (float)RAND_MAX - 0.5f) * speedY;
+            break;
+
+        case 3: // right
+            posX[index] = w + radius;
+            posY[index] = ((float)std::rand() / (float)RAND_MAX) * h;
+            velX[index] = -std::fabs(speedX);
+            velY[index] = ((float)std::rand() / (float)RAND_MAX - 0.5f) * speedY;
+            break;
+    }
+
+    alive[index] = true;
+
+    env->ReleaseFloatArrayElements(posXArr, posX, 0);
+    env->ReleaseFloatArrayElements(posYArr, posY, 0);
+    env->ReleaseFloatArrayElements(velXArr, velX, 0);
+    env->ReleaseFloatArrayElements(velYArr, velY, 0);
+    env->ReleaseBooleanArrayElements(aliveArr, alive, 0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_example_game_GameView_nativeApplyGravity(
+        JNIEnv* env,
+        jobject thiz,
+        jfloat screenWidth,
+        jfloat screenHeight, 
+        jfloatArray posXArr,
+        jfloatArray posYArr,
+        jfloatArray velXArr,
+        jfloatArray velYArr,
+        jbooleanArray aliveArr,
+        jfloat dt,
+        jfloat gravity,
+        jfloat radius) 
+{
+    jint count = env->GetArrayLength(posXArr);
+
+    jfloat* posX = env->GetFloatArrayElements(posXArr, nullptr);
+    jfloat* posY = env->GetFloatArrayElements(posYArr, nullptr);
+    jfloat* velX = env->GetFloatArrayElements(velXArr, nullptr);
+    jfloat* velY = env->GetFloatArrayElements(velYArr, nullptr);
+
+    jboolean* alive = env->GetBooleanArrayElements(aliveArr, nullptr);
+
+    float w = screenWidth;
+    float h = screenHeight; 
+
+    for (int i = 0; i < count; i++) {
+        if (!alive[i]) continue;
+
+        velY[i] += gravity * dt;
+        posY[i] += velY[i] * dt;
+
+        if (posY[i] > h - radius) {
+            posY[i] = h - radius;
+            velY[i] *= -0.3f;
+        }
+    }
+
+    env->ReleaseFloatArrayElements(posXArr, posX, 0);
+    env->ReleaseFloatArrayElements(posYArr, posY, 0);
+    env->ReleaseFloatArrayElements(velXArr, velX, 0);
+    env->ReleaseFloatArrayElements(velYArr, velY, 0);
+    env->ReleaseBooleanArrayElements(aliveArr, alive, 0);
 }
 
 }

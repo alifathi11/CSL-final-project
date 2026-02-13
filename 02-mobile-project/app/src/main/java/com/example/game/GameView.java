@@ -36,12 +36,9 @@ public class GameView extends View {
     private Paint ballPaint; 
     private Paint textPaintWhite;
     private Paint textPaintRed;
+    private Paint endPaint;
 
     private long lastTime;
-
-    private float currentSpeedMultiplier = 1.0f;
-    private float maxSpeedMultiplier = 2.0f;
-    private float speedIncreaseStep = 0.1f;
 
     static {
         System.loadLibrary("game"); 
@@ -62,6 +59,11 @@ public class GameView extends View {
         textPaintRed.setColor(Color.RED);
         textPaintRed.setTextSize(50f);
         textPaintRed.setAntiAlias(true);
+
+        endPaint = new Paint();
+        endPaint.setTextSize(120f);
+        endPaint.setTextAlign(Paint.Align.CENTER);
+        endPaint.setAntiAlias(true);
 
         hitCount  = 0;
         missCount = 0;
@@ -92,10 +94,11 @@ public class GameView extends View {
 
         long now = System.nanoTime();
         float dt = (now - lastTime) / 1_000_000_000f;
+        if (dt > 0.033f) dt = 0.033f; 
         lastTime = now;
-
+        
         update(dt);
-
+        
         canvas.drawColor(Color.BLACK);
 
         for (int i = 0; i < ballCount; i++) {
@@ -109,20 +112,28 @@ public class GameView extends View {
         canvas.drawText("Miss: " + missCount, 30f, 120f, textPaintRed);
 
         if (gameOver) {
-            Paint endPaint = new Paint();
-            endPaint.setColor(playerWon ? Color.GREEN : Color.RED);
-            endPaint.setTextSize(120f);
-            endPaint.setTextAlign(Paint.Align.CENTER);
-            endPaint.setAntiAlias(true);
 
             float cx = getWidth()  / 2f;
             float cy = getHeight() / 2f;
 
+            endPaint.setColor(playerWon ? Color.GREEN : Color.RED);
             String msg = playerWon ? "You Win!" : "Game Over";
             canvas.drawText(msg, cx, cy, endPaint);
         }
 
         postInvalidateOnAnimation();
+    }
+
+    private void update(float dt) {
+
+        if (gameOver) {
+            nativeApplyGravityWrapper(dt);
+            return;
+        }
+
+        nativeUpdateWrapper(dt);
+
+        checkEnd();
     }
 
     @Override 
@@ -155,7 +166,7 @@ public class GameView extends View {
             if (dx * dx + dy * dy <= touchRadiusSq) {
 
                 alive[i] = false;
-                respawnBall(i);
+                nativeRespawnBallWrapper(i);
 
                 hitCount++;
                 hitSomething = true;
@@ -177,76 +188,17 @@ public class GameView extends View {
         nativeUpdate(getWidth(), getHeight(), posX, posY, velX, velY, alive, radius, dt, gameOver);
     }
 
-    private void update(float dt) {
-
-        if (gameOver) {
-            applyGravity(dt);
-            return;
-        }
-
-        nativeUpdateWrapper(dt);
-
-        checkEnd();
+    private void nativeRespawnBallWrapper(int i) {
+        nativeRespawnBall(getWidth(), getHeight(), posX, posY, velX, velY, alive, i, radius);
     }
 
-    private void respawnBall(int i) {
-
-        if (currentSpeedMultiplier < maxSpeedMultiplier) {
-            currentSpeedMultiplier += speedIncreaseStep;
-            speedIncreaseStep *= 0.8;
-        }
-
-        Random rnd = new Random();
-
-        int side = rnd.nextInt(4);
-
-        float w = getWidth();
-        float h = getHeight();
-
-        float baseSpeedX = (rnd.nextFloat() * 2000f) + 1000f;
-        float baseSpeedY = (rnd.nextFloat() * 2000f) + 1000f;
-
-        float speedX = baseSpeedX * currentSpeedMultiplier;
-        float speedY = baseSpeedY * currentSpeedMultiplier;
-
-        switch (side) {
-
-            case 0:
-                posX[i] = rnd.nextFloat() * w;
-                posY[i] = -radius;
-                velX[i] = (rnd.nextFloat() - 0.5f) * speedX;
-                velY[i] = Math.abs(speedY);
-                break;
-
-            case 1:
-                posX[i] = rnd.nextFloat() * w;
-                posY[i] = h + radius;
-                velX[i] = (rnd.nextFloat() - 0.5f) * speedX;
-                velY[i] = -Math.abs(speedY);
-                break;
-
-            case 2:
-                posX[i] = -radius;
-                posY[i] = rnd.nextFloat() * h;
-                velX[i] = Math.abs(speedX);
-                velY[i] = (rnd.nextFloat() - 0.5f) * speedY;
-                break;
-
-            case 3:
-                posX[i] = w + radius;
-                posY[i] = rnd.nextFloat() * h;
-                velX[i] = -Math.abs(speedX);
-                velY[i] = (rnd.nextFloat() - 0.5f) * speedY;
-                break;
-        }
-
-        alive[i] = true;
+    private void nativeApplyGravityWrapper(float dt) {
+        nativeApplyGravity(getWidth(), getHeight(), posX, posY, velX, velY, alive, dt, gravity, radius);
     }
 
     private void restartGame() {
         hitCount = 0;
         missCount = 0;
-        currentSpeedMultiplier = 1.0f;
 
         Random rnd = new Random();
         for (int i = 0; i < ballCount; i++) {
@@ -261,22 +213,6 @@ public class GameView extends View {
         playerWon = false;
     }
 
-    private void applyGravity(float dt) {
-
-        for (int i = 0; i < ballCount; i++) {
-            if (!alive[i]) continue;
-
-            velY[i] += gravity * dt;       
-            posY[i] += velY[i] * dt;
-
-            if (posY[i] > getHeight() - radius) {
-                posY[i] = getHeight() - radius;
-                velY[i] *= -0.3f;  
-            }
-        }
-
-    }
-
     private void checkEnd() {
         if (hitCount >= winHitCount) {
             gameOver  = true;
@@ -288,8 +224,8 @@ public class GameView extends View {
     }
 
     private native void nativeUpdate(
-        int screenWidth,
-        int screenHeight,
+        float screenWidth,
+        float screenHeight,
         float[] posX,
         float[] posY,
         float[] velX,
@@ -298,6 +234,31 @@ public class GameView extends View {
         float radius,
         float dt,
         boolean gameOver
+    );
+
+    private native void nativeRespawnBall(
+        float screenWidth, 
+        float screenHeight, 
+        float[] posX,
+        float[] posY,
+        float[] velX,
+        float[] velY,
+        boolean[] alive,
+        int index, 
+        float radius
+    );
+
+    private native void nativeApplyGravity(
+        float screenWidth, 
+        float screenHeight, 
+        float[] posX,
+        float[] posY,
+        float[] velX,
+        float[] velY,
+        boolean[] alive,
+        float dt, 
+        float gravity,
+        float radius
     );
 
 }
