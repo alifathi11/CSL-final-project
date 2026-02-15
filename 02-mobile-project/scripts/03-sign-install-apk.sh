@@ -22,7 +22,7 @@ keytool -genkeypair \
 fi
 
 echo "== Aligning APK =="
-$BUILD_TOOLS/zipalign -f 4 \
+$BUILD_TOOLS/zipalign -p -f 4 \
     $BUILD_DIR/MyGame-unsigned.apk \
     $BUILD_DIR/MyGame-aligned.apk
 

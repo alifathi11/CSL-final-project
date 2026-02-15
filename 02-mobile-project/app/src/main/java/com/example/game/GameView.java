@@ -227,18 +227,15 @@ public class GameView extends View {
         nativeApplyGravity(getWidth(), getHeight(), posX, posY, velX, velY, alive, dt, gravity, radius);
     }
 
+    private void nativeRestartGameWrapper() {
+        nativeRestartGame(getWidth(), getHeight(), posX, posY, velX, velY, alive);
+    }
+
     private void restartGame() {
         hitCount = 0;
         missCount = 0;
 
-        Random rnd = new Random();
-        for (int i = 0; i < ballCount; i++) {
-            posX[i] = rnd.nextFloat() * getWidth();
-            posY[i] = rnd.nextFloat() * getHeight();
-            velX[i] = (rnd.nextFloat() - 0.5f) * 4000;
-            velY[i] = (rnd.nextFloat() - 0.5f) * 4000;
-            alive[i] = true;
-        }
+        nativeRestartGameWrapper();
 
         gameOver = false;
         playerWon = false;
@@ -299,6 +296,16 @@ public class GameView extends View {
         float dt, 
         float gravity,
         float radius
+    );
+
+    private native void nativeRestartGame(
+        float screenWidth, 
+        float screenHeight, 
+        float[] posX, 
+        float[] posY, 
+        float[] velX,
+        float[] velY,
+        boolean[] alive
     );
 
 }

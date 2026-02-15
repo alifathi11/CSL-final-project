@@ -50,8 +50,18 @@ echo "== Adding classes.dex =="
 zip -j $BUILD_DIR/MyGame-unsigned.apk $BUILD_DIR/classes.dex
 
 echo "== Adding native library libgame.so =="
+
+# Automatically locate libgame.so
+SO_PATH=$(find $CPP_BUILD_DIR -name libgame.so)
+
+if [ -z "$SO_PATH" ]; then
+    echo "ERROR: libgame.so not found!"
+    exit 1
+fi
+
 mkdir -p tmp/lib/arm64-v8a
-cp $CPP_BUILD_DIR/libgame.so tmp/lib/arm64-v8a/
+cp $SO_PATH tmp/lib/arm64-v8a/
+
 cd tmp
 zip -r ../$BUILD_DIR/MyGame-unsigned.apk lib
 cd ..

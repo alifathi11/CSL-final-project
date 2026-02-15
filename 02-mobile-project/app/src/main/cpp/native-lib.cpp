@@ -221,4 +221,50 @@ Java_com_example_game_GameView_nativeApplyGravity(
     env->ReleaseBooleanArrayElements(aliveArr, alive, 0);
 }
 
+JNIEXPORT void JNICALL
+Java_com_example_game_GameView_nativeRestartGame(
+        JNIEnv* env,
+        jobject thiz,
+        jfloat screenWidth,
+        jfloat screenHeight, 
+        jfloatArray posXArr,
+        jfloatArray posYArr,
+        jfloatArray velXArr,
+        jfloatArray velYArr,
+        jbooleanArray aliveArr) 
+{
+    jint count = env->GetArrayLength(posXArr);
+
+    jfloat* posX = env->GetFloatArrayElements(posXArr, nullptr);
+    jfloat* posY = env->GetFloatArrayElements(posYArr, nullptr);
+    jfloat* velX = env->GetFloatArrayElements(velXArr, nullptr);
+    jfloat* velY = env->GetFloatArrayElements(velYArr, nullptr);
+
+    jboolean* alive = env->GetBooleanArrayElements(aliveArr, nullptr);
+
+    float w = screenWidth;
+    float h = screenHeight; 
+
+    float randomFloat; 
+
+    for (int i = 0; i < count; i++) {
+        randomFloat = ((float)std::rand() / (float)RAND_MAX);
+        posX[i] = randomFloat * w;
+        randomFloat = ((float)std::rand() / (float)RAND_MAX);
+        posY[i] = randomFloat * h;
+        randomFloat = ((float)std::rand() / (float)RAND_MAX);
+        velX[i] = (randomFloat - 0.5f) * 4000;
+        randomFloat = ((float)std::rand() / (float)RAND_MAX);
+        velY[i] = (randomFloat - 0.5f) * 4000;
+
+        alive[i] = true;
+    }
+
+    env->ReleaseFloatArrayElements(posXArr, posX, 0);
+    env->ReleaseFloatArrayElements(posYArr, posY, 0);
+    env->ReleaseFloatArrayElements(velXArr, velX, 0);
+    env->ReleaseFloatArrayElements(velYArr, velY, 0);
+    env->ReleaseBooleanArrayElements(aliveArr, alive, 0);
+}
+
 }
