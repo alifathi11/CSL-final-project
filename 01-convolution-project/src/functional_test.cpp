@@ -147,7 +147,7 @@ static int save_image(
 
     char output_filename[MED_BUF_SIZE];
 
-    snprintf(output_filename, sizeof(output_filename), "%s/out.jpeg", dir.c_str());
+    snprintf(output_filename, sizeof(output_filename), "%s", dir.c_str());
 
     if (color_mode == COLOR_MODE_GRAYSCALE)
         res = save_float_array_as_grayscale_image(

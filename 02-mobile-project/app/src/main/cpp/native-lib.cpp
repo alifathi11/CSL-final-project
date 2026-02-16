@@ -29,7 +29,7 @@ bool gameOver  = false;
 bool playerWon = false;
 
 // Declaration of the assembly functions 
-extern "C" void update_positions_asm(
+void update_positions_asm(
     float *posX,
     float *posY,
     const float *velX,
@@ -67,6 +67,7 @@ Java_com_example_game_GameView_nativeUpdate(
 
     update_positions_asm(posX, posY, velX, velY, count, dt, radius, w, h);
 
+    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
 
         if (!gameOver) {
@@ -77,6 +78,7 @@ Java_com_example_game_GameView_nativeUpdate(
         }
     }
 
+    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
 
         for (int j = i + 1; j < count; j++) {
@@ -212,6 +214,7 @@ Java_com_example_game_GameView_nativeApplyGravity(
     float w = screenWidth;
     float h = screenHeight; 
 
+    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
 
         velY[i] += gravity * dt;
@@ -263,6 +266,7 @@ Java_com_example_game_GameView_nativeRestartGame(
     
     float randomFloat; 
 
+    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
         randomFloat = ((float)std::rand() / (float)RAND_MAX);
         posX[i] = randomFloat * w;
@@ -304,6 +308,7 @@ Java_com_example_game_GameView_nativeHandleTouch(
 
     int ret = -1;
 
+    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
 
         float dx = touchX - posX[i];

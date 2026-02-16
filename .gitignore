@@ -7,6 +7,7 @@ obj
 *.jpg
 *.png
 images
+dataset*
 .ipynb_checkpoints
 build
 *.jks
