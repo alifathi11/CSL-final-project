@@ -14,46 +14,45 @@ import android.media.AudioAttributes;
 
 public class GameView extends View {
 
-    private float gravity = 2000f;
-
-    private boolean gameOver  = false;
-    private boolean playerWon = false;
-
-    private int winHitCount   = 10;
-    private int loseMissCount = 10;
-
-    private int hitCount;
-    private int missCount;
-
-    private int ballCount = 4;
-
-    private float[] posX;
-    private float[] posY;
-    private float[] velX;
-    private float[] velY;
-
-    private boolean[] alive;
-    
-    private float radius = 100f;
-    
-    private Paint ballPaint; 
-    private Paint textPaintWhite;
-    private Paint textPaintRed;
-    private Paint endPaint;
-
-    private long lastTime;
-
-    private SoundPool soundPool;
-    private int popSoundId;
-    private boolean soundLoaded = false;
-
+    // Load static lib
     static {
         System.loadLibrary("game"); 
     }
 
+    // Gravity 
+    private float gravity = 2000f;
+
+    // Balls' Count
+    private final int ballCount = 4;
+
+    // Balls' Radius
+    private final float radius = 100f;
+
+    // Balls' Positions 
+    private float[] posX;
+    private float[] posY;
+    private float[] velX;
+    private float[] velY;
+    
+    // Paints
+    private final Paint ballPaint; 
+    private final Paint textPaintWhite;
+    private final Paint textPaintRed;
+    private final Paint endPaint;
+
+    // Times 
+    private long lastTime;
+
+    // Sounds
+    private SoundPool soundPool;
+    private final int popSoundId;
+
+    private boolean soundLoaded = false;
+
     public GameView(Context context) {
         super(context);
 
+        // Paints
         ballPaint = new Paint();
         ballPaint.setColor(Color.GREEN);
 
@@ -72,29 +71,24 @@ public class GameView extends View {
         endPaint.setTextAlign(Paint.Align.CENTER);
         endPaint.setAntiAlias(true);
 
-        hitCount  = 0;
-        missCount = 0;
-
+        // Balls' Positions
         posX = new float[ballCount];
         posY = new float[ballCount];
         velX = new float[ballCount];
         velY = new float[ballCount];
 
-        alive = new boolean[ballCount];
-
         Random rnd = new Random();
-
         for (int i = 0; i < ballCount; i++) {
             posX[i] = rnd.nextFloat() * 800;
             posY[i] = rnd.nextFloat() * 1200;
             velX[i] = (rnd.nextFloat() - 0.5f) * 2000;
             velY[i] = (rnd.nextFloat() - 0.5f) * 2000;
-
-            alive[i] = true;
         }
 
+        // Times
         lastTime = System.nanoTime();
 
+        // Sounds
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -115,51 +109,82 @@ public class GameView extends View {
 
     }
 
-    @Override 
-    protected void onDraw(Canvas canvas) {
-
+    private float updateTime() {
         long now = System.nanoTime();
         float dt = (now - lastTime) / 1_000_000_000f;
         if (dt > 0.033f) dt = 0.033f; 
         lastTime = now;
-        
-        update(dt);
-        
+
+        return dt;
+    }
+
+    private void drawBackground(Canvas canvas) {
         canvas.drawColor(Color.BLACK);
+    }
 
+    private void drawBalls(Canvas canvas) {
         for (int i = 0; i < ballCount; i++) {
-            if (!alive[i]) continue;
-
             canvas.drawCircle(posX[i], posY[i], radius, ballPaint);
-        
         }
+    }
 
+    private void drawHitAndMissCount(Canvas canvas) {
+        int hitCount  = nativeGetHitCountWrapper();
+        int missCount = nativeGetMissCountWrapper();
+        
         canvas.drawText("Hits: " + hitCount, 30f, 60f, textPaintWhite);
         canvas.drawText("Miss: " + missCount, 30f, 120f, textPaintRed);
+    }
 
-        if (gameOver) {
+    private void drawEndGameScreen(Canvas canvas) {
 
-            float cx = getWidth()  / 2f;
-            float cy = getHeight() / 2f;
+        float cx = getWidth()  / 2f;
+        float cy = getHeight() / 2f;
 
-            endPaint.setColor(playerWon ? Color.GREEN : Color.RED);
-            String msg = playerWon ? "You Win!" : "Game Over";
-            canvas.drawText(msg, cx, cy, endPaint);
-        }
+        boolean playerWon = nativeGetPlayerWonWrapper();
+
+        endPaint.setColor(playerWon ? Color.GREEN : Color.RED);
+        String msg = playerWon ? "You Win!" : "Game Over";
+        canvas.drawText(msg, cx, cy, endPaint);
+    }
+
+    @Override 
+    protected void onDraw(Canvas canvas) {
+
+        // Update Time
+        float dt = updateTime();
+        
+        // Update Game 
+        updateGame(dt);
+        
+        // Draw Background
+        drawBackground(canvas);
+
+        // Draw Balls
+        drawBalls(canvas);
+
+        // Draw Hit/Miss Count
+        drawHitAndMissCount(canvas);
+
+        // Draw Endgame Screen 
+
+        boolean gameOver = nativeGetGameOverWrapper();
+        if (gameOver) 
+            drawEndGameScreen(canvas);
 
         postInvalidateOnAnimation();
     }
 
-    private void update(float dt) {
+    private void updateGame(float dt) {
+
+        boolean gameOver = nativeGetGameOverWrapper();
 
         if (gameOver) {
             nativeApplyGravityWrapper(dt);
-            return;
+        } else {
+            nativeUpdateWrapper(dt);
+            nativeCheckEndWrapper();
         }
-
-        nativeUpdateWrapper(dt);
-
-        checkEnd();
     }
 
     @Override 
@@ -168,87 +193,29 @@ public class GameView extends View {
         if (event.getAction() != MotionEvent.ACTION_DOWN)
             return true;
 
+        boolean gameOver = nativeGetGameOverWrapper();
+
         if (gameOver) {
-            restartGame();
+            nativeRestartGameWrapper();
             return true;
         }
 
         float touchX = event.getX();
         float touchY = event.getY();
 
-        boolean hitSomething = false;
+        int hitIndex = nativeHandleTouchWrapper(touchX, touchY);
 
-        float touchPadding = 75f;
-        float touchRadius = radius + touchPadding;
-        float touchRadiusSq = touchRadius * touchRadius;
+        if (hitIndex != -1) {
 
-        for (int i = 0; i < ballCount; i++) {
+            nativeRespawnBallWrapper(hitIndex);
 
-            if (!alive[i]) continue;
-
-            float dx = touchX - posX[i];
-            float dy = touchY - posY[i];
-
-            if (dx * dx + dy * dy <= touchRadiusSq) {
-
-                alive[i] = false;
-                nativeRespawnBallWrapper(i);
-
-                if (soundLoaded) {
-                    float rate = 0.9f + new Random().nextFloat() * 0.2f;
-                    soundPool.play(popSoundId, 1f, 1f, 1, 0, rate);
-                }
-
-                hitCount++;
-                hitSomething = true;
-
-                break;
+            if (soundLoaded) {
+                float rate = 0.9f + new Random().nextFloat() * 0.2f;
+                soundPool.play(popSoundId, 1f, 1f, 1, 0, rate);
             }
         }
 
-        if (!hitSomething) {
-            missCount++;
-        }
-
         return true;
-    }
-
-    private void nativeUpdateWrapper(float dt) {
-        if (getWidth() == 0 || getHeight() == 0) return;
-
-        nativeUpdate(getWidth(), getHeight(), posX, posY, velX, velY, alive, radius, dt, gameOver);
-    }
-
-    private void nativeRespawnBallWrapper(int i) {
-        nativeRespawnBall(getWidth(), getHeight(), posX, posY, velX, velY, alive, i, radius);
-    }
-
-    private void nativeApplyGravityWrapper(float dt) {
-        nativeApplyGravity(getWidth(), getHeight(), posX, posY, velX, velY, alive, dt, gravity, radius);
-    }
-
-    private void nativeRestartGameWrapper() {
-        nativeRestartGame(getWidth(), getHeight(), posX, posY, velX, velY, alive);
-    }
-
-    private void restartGame() {
-        hitCount = 0;
-        missCount = 0;
-
-        nativeRestartGameWrapper();
-
-        gameOver = false;
-        playerWon = false;
-    }
-
-    private void checkEnd() {
-        if (hitCount >= winHitCount) {
-            gameOver  = true;
-            playerWon = true;
-        } else if (missCount >= loseMissCount) {
-            gameOver  = true;
-            playerWon = false;
-        }
     }
 
     @Override
@@ -260,6 +227,46 @@ public class GameView extends View {
         }
     }
 
+    private void nativeUpdateWrapper(float dt) {
+        nativeUpdate(getWidth(), getHeight(), posX, posY, velX, velY, radius, dt);
+    }
+
+    private void nativeRespawnBallWrapper(int i) {
+        nativeRespawnBall(getWidth(), getHeight(), posX, posY, velX, velY, i, radius);
+    }
+
+    private void nativeApplyGravityWrapper(float dt) {
+        nativeApplyGravity(getWidth(), getHeight(), posX, posY, velX, velY, dt, gravity, radius);
+    }
+
+    private void nativeRestartGameWrapper() {
+        nativeRestartGame(getWidth(), getHeight(), posX, posY, velX, velY);
+    }
+
+    private int nativeHandleTouchWrapper(float touchX, float touchY) {
+        return nativeHandleTouch(touchX, touchY, posX, posY, radius);
+    }
+
+    private void nativeCheckEndWrapper() {
+        nativeCheckEnd();
+    }
+
+    private int nativeGetHitCountWrapper() {
+        return nativeGetHitCount();
+    }
+
+    private int nativeGetMissCountWrapper() {
+        return nativeGetMissCount();
+    }
+
+    private boolean nativeGetPlayerWonWrapper() {
+        return nativeGetPlayerWon();
+    }
+
+    private boolean nativeGetGameOverWrapper() {
+        return nativeGetGameOver();
+    }
+
     private native void nativeUpdate(
         float screenWidth,
         float screenHeight,
@@ -267,10 +274,8 @@ public class GameView extends View {
         float[] posY,
         float[] velX,
         float[] velY,
-        boolean[] alive,
         float radius,
-        float dt,
-        boolean gameOver
+        float dt
     );
 
     private native void nativeRespawnBall(
@@ -280,7 +285,6 @@ public class GameView extends View {
         float[] posY,
         float[] velX,
         float[] velY,
-        boolean[] alive,
         int index, 
         float radius
     );
@@ -292,7 +296,6 @@ public class GameView extends View {
         float[] posY,
         float[] velX,
         float[] velY,
-        boolean[] alive,
         float dt, 
         float gravity,
         float radius
@@ -304,8 +307,23 @@ public class GameView extends View {
         float[] posX, 
         float[] posY, 
         float[] velX,
-        float[] velY,
-        boolean[] alive
+        float[] velY
     );
+
+    private native int nativeHandleTouch(
+        float touchX,
+        float touchY,
+        float[] posX,
+        float[] posY,
+        float radius
+    );
+
+    private native void nativeCheckEnd();
+
+    private native int nativeGetHitCount();
+    private native int nativeGetMissCount();
+
+    private native boolean nativeGetPlayerWon();
+    private native boolean nativeGetGameOver();
 
 }

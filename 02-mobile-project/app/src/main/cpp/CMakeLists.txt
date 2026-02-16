@@ -12,6 +12,8 @@ endif()
 set(ANDROID_ABI arm64-v8a)
 set(ANDROID_PLATFORM 33)
 
+set_source_files_properties(physics.S PROPERTIES LANGUAGE C)
+
 add_library(game SHARED
     native-lib.cpp
     physics.S
