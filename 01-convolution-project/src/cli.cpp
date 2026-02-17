@@ -132,8 +132,6 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
 
 int validate_cli(CLIArgs& args) {
 
-    // TODO: reuse conv2d validation functions
-
     if (args.run_mode == RUN_MODE_NONE) {
         print_err("Invalid run mode", CODE_FAILURE_INVALID_ARG);
         return CODE_FAILURE_INVALID_ARG;
