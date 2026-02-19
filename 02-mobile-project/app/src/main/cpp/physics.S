@@ -70,3 +70,77 @@ update_positions_scalar_loop:
 
 update_positions_done:
     ret
+
+
+// TODO: use Vector Registers
+.global handle_wall_collisions_asm
+.type handle_wall_collisions_asm, %function
+
+handle_wall_collisions_asm:
+    // x0 = posX
+    // x1 = posY
+    // x2 = velX
+    // x3 = velY
+    // w4 = count
+    // s0 = radius
+    // s1 = w
+    // s2 = h
+    // w5 = gameOver
+
+    cmp w5, #0
+    b.ne wall_done
+
+    uxtw x4, w4        
+    mov x5, #0         
+
+    fsub s3, s1, s0    // w - radius
+    fsub s4, s2, s0    // h - radius
+
+wall_loop:
+    cmp x5, x4
+    bge wall_done
+
+    ldr s5, [x0, x5, LSL #2]   // posX[i]
+    ldr s6, [x1, x5, LSL #2]   // posY[i]
+
+    ldr s7, [x2, x5, LSL #2]   // velX[i]
+    ldr s8, [x3, x5, LSL #2]   // velY[i]
+
+    fcmp s5, s0
+    bge check_right
+
+    fmov s5, s0
+    fneg s7, s7
+
+check_right:
+    fcmp s5, s3
+    ble check_top
+
+    fmov s5, s3
+    fneg s7, s7
+
+check_top:
+    fcmp s6, s0
+    bge check_bottom
+
+    fmov s6, s0
+    fneg s8, s8
+
+check_bottom:
+    fcmp s6, s4
+    ble store_values
+
+    fmov s6, s4
+    fneg s8, s8
+
+store_values:
+    str s5, [x0, x5, LSL #2]
+    str s6, [x1, x5, LSL #2]
+    str s7, [x2, x5, LSL #2]
+    str s8, [x3, x5, LSL #2]
+
+    add x5, x5, #1
+    b wall_loop
+
+wall_done:
+    ret

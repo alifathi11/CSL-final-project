@@ -41,6 +41,18 @@ void update_positions_asm(
     float h
 );
 
+void handle_wall_collisions_asm(
+    float *posX,
+    float *posY,
+    float *velX,
+    float *velY,
+    int count,
+    float radius,
+    float w,
+    float h,
+    bool gameOver
+);
+
 JNIEXPORT void JNICALL
 Java_com_example_game_GameView_nativeUpdate(
         JNIEnv* env,
@@ -67,18 +79,8 @@ Java_com_example_game_GameView_nativeUpdate(
 
     update_positions_asm(posX, posY, velX, velY, count, dt, radius, w, h);
 
-    // TODO: should be moved to asm
-    for (int i = 0; i < count; i++) {
+    handle_wall_collisions_asm(posX, posY, velX, velY, count, radius, w, h, gameOver);
 
-        if (!gameOver) {
-            if (posX[i] < radius) { posX[i] = radius; velX[i] = -velX[i]; }
-            if (posX[i] > w - radius) { posX[i] = w - radius; velX[i] = -velX[i]; }
-            if (posY[i] < radius) { posY[i] = radius; velY[i] = -velY[i]; }
-            if (posY[i] > h - radius) { posY[i] = h - radius; velY[i] = -velY[i]; }
-        }
-    }
-
-    // TODO: should be moved to asm
     for (int i = 0; i < count; i++) {
 
         for (int j = i + 1; j < count; j++) {
