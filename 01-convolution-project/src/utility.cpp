@@ -153,6 +153,28 @@ int read_int(const char *param_name,
     return CODE_SUCCESS;
 }
 
+int read_yes_no(
+    const char *param_name,
+    FILE *stream,
+    bool default_value
+) {
+    if (!param_name || !stream) {
+        fprintf(stderr, "[Error] Invalid arguments to read bool\n");
+        return CODE_FAILURE_INVALID_ARG;
+    }
+
+    char buf[MED_BUF_SIZE];
+    read_param(param_name, stream, default_value ? "yes" : "no", buf, sizeof(buf));
+
+    for (size_t i = 0; i < strlen(buf); i++) 
+        buf[i] = tolower(buf[i]);
+    
+    if (strcmp(buf, "yes") == 0 || strcmp(buf, "y") == 0) 
+        return true;
+    else
+        return false;
+}
+
 int read_size_t(const char *param_name,
                 FILE *stream,
                 const size_t *default_value,

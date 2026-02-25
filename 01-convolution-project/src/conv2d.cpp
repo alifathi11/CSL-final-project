@@ -31,24 +31,17 @@ static bool is_valid_engine_mode(int engine_mode) {
     return (
         engine_mode == ENGINE_MODE_BASELINE ||
         engine_mode == ENGINE_MODE_SSE      || 
-        engine_mode == ENGINE_MODE_AVX
+        engine_mode == ENGINE_MODE_AVX      
     );
 }
 
 static bool is_valid_kernel(const Kernel& kernel) {
     if (
         !kernel.data ||
-        !(kernel.size == KERNEL_SIZE_3 || kernel.size == KERNEL_SIZE_5 || kernel.size == KERNEL_SIZE_7) ||
-        !(
-            kernel.type == KERNEL_TYPE_SHARPEN       || 
-            kernel.type == KERNEL_TYPE_BOX_BLUR      ||
-            kernel.type == KERNEL_TYPE_GAUSSIAN_BLUR ||
-            kernel.type == KERNEL_TYPE_SOBEL_X       || 
-            kernel.type == KERNEL_TYPE_SOBEL_Y
-        )
+        !(kernel.size == KERNEL_SIZE_3 || kernel.size == KERNEL_SIZE_5 || kernel.size == KERNEL_SIZE_7)
     ) {
         return false;
-    }
+    } 
 
     return true;
 }

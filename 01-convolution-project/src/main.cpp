@@ -1,6 +1,7 @@
 #include "cli.h"
 #include "constants.h"
 #include "functional_test.h"
+#include "infer_test.h"
 #include "speed_test.h"
 #include "utility.h"
 
@@ -34,21 +35,38 @@ static int read_input_and_run_speed_test() {
     return res;
 }
 
+static int read_input_and_run_infer_test() {
+
+    int res = CODE_SUCCESS;
+
+    InferTestParams params;
+
+    res = read_infer_test_input(params);
+    if (res != CODE_SUCCESS)    
+        return res;
+
+    res = run_infer_test(params);
+
+    return res;
+}
+
 static int run_interactive() {
 
     int res = CODE_SUCCESS;
 
-    int option_def = RUN_MODE_SPEED_TEST;
+    int option_def = RUN_MODE_INFER_TEST;
 
     int option;
 
-    OptionEntry options[2];
+    OptionEntry options[3];
     options[0].option_number = RUN_MODE_FUNCTIONAL_TEST;
     options[0].option_name   = RUN_MODE_FUNCTIONAL_TEST_STR;
     options[1].option_number = RUN_MODE_SPEED_TEST;
     options[1].option_name   = RUN_MODE_SPEED_TEST_STR;
+    options[2].option_number = RUN_MODE_INFER_TEST;
+    options[2].option_name   = RUN_MODE_INFER_TEST_STR;
 
-    res = read_option("Option", options, 2, stdin, &option_def, &option);
+    res = read_option("Option", options, 3, stdin, &option_def, &option);
     if (res != CODE_SUCCESS) {
         print_err("Failed to read option", res);
         return res;
@@ -58,6 +76,8 @@ static int run_interactive() {
         res = read_input_and_run_functional_test();
     else if (option == RUN_MODE_SPEED_TEST)
         res = read_input_and_run_speed_test();
+    else if (option == RUN_MODE_INFER_TEST)
+        res = read_input_and_run_infer_test();
 
     return res;
 }
@@ -107,10 +127,31 @@ static int run_cli(int argc, char **argv) {
 
         res = run_speed_test(params);
         
+    } else if (args.run_mode == RUN_MODE_INFER_TEST) {
+
+        InferTestParams params = {
+            args.engine_mode, 
+            args.input,
+            args.kernel_path,
+            args.fc_weight_path,
+            args.fc_bias_path,
+            args.eval
+        };
+
+        res = run_infer_test(params);
     }
        
     return res;
 }
+
+    int engine_mode;
+    
+    std::string image_path;
+    std::string tensors_dir;
+    std::string kernel_path;
+    std::string fc_weight_path;
+    std::string fc_bias_path;
+
 
 int main(int argc, char **argv) {
 

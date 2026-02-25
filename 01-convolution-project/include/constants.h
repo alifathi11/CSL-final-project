@@ -5,10 +5,12 @@
 // ==========================================================================
 #define RUN_MODE_FUNCTIONAL_TEST      1
 #define RUN_MODE_SPEED_TEST           2
+#define RUN_MODE_INFER_TEST           3
 #define RUN_MODE_NONE                -1
 
 #define RUN_MODE_FUNCTIONAL_TEST_STR       "Functional Test"
 #define RUN_MODE_SPEED_TEST_STR                 "Speed Test"
+#define RUN_MODE_INFER_TEST_STR             "Inference Test"
 
 // ========================================================================== 
 // ============================= Engine Mode ================================

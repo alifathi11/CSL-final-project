@@ -8,6 +8,8 @@ obj
 *.png
 images
 dataset*
+infer_test
+chest_xray
 .ipynb_checkpoints
 build
 *.jks

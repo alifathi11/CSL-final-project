@@ -26,6 +26,12 @@ int read_int(const char *param_name,
              const int *default_value,
              int *out);
 
+int read_yes_no(
+    const char *param_name,
+    FILE *stream,
+    bool default_value
+);
+
 int read_size_t(const char *param_name,
                 FILE *stream,
                 const size_t *default_value,

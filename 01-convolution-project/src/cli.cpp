@@ -7,30 +7,38 @@
 #include "utility.h"
 
 static struct option long_options[] = {
-    {"mode",    required_argument, nullptr, 'm'},
-    {"engine",  required_argument, nullptr, 'e'},
-    {"ktype",   required_argument, nullptr, 'k'},
-    {"ksize",   required_argument, nullptr, 's'},
-    {"input",   required_argument, nullptr, 'i'},
-    {"output",  required_argument, nullptr, 'o'},
-    {"color",   required_argument, nullptr, 'c'},
-    {"help",    no_argument,       nullptr, 'h'},
-    {nullptr,   0,                 nullptr, 0}
+    {"mode",      required_argument, nullptr, 'm'},
+    {"engine",    required_argument, nullptr, 'e'},
+    {"ktype",     required_argument, nullptr, 'k'},
+    {"ksize",     required_argument, nullptr, 's'},
+    {"kpath",     required_argument, nullptr, 'p'},
+    {"fc_weight", required_argument, nullptr, 'w'},
+    {"fc_bias",   required_argument, nullptr, 'b'},
+    {"input",     required_argument, nullptr, 'i'},
+    {"output",    required_argument, nullptr, 'o'},
+    {"color",     required_argument, nullptr, 'c'},
+    {"eval",     no_argument,       nullptr, 'v'},
+    {"help",     no_argument,       nullptr, 'h'},
+    {nullptr,    0,                 nullptr, 0}
 };
 
 void print_help() {
     std::cout <<
     "Usage: conv2d [OPTIONS]\n\n"
     "Modes:\n"
-    "  -m --mode functional | speed\n\n"
+    "  -m --mode functional | speed | infer\n\n"
     "Options:\n"
-    "  -e, --engine   baseline | sse | avx\n"
-    "  -k, --ktype    sharpen | box_blur | gaussian_blur | sobel_x | sobel_y\n"
-    "  -s, --ksize    kernel size (e.g. 3)\n"
-    "  -i, --input    input file or directory\n"
-    "  -o, --output   output file or directory (optional)\n"
-    "  -c, --color    grayscale | rgb (optional) (default = rgb)\n"
-    "  -h, --help     show this help\n";
+    "  -e, --engine     baseline | sse | avx\n"
+    "  -k, --ktype      kernel type (functional/speed only)\n"
+    "  -s, --ksize      kernel size (functional/speed only)\n"
+    "  -p, --kpath      path to conv kernel file (infer mode)\n"
+    "  -w, --fc_weight  path to fully connected weight file (infer mode)\n"
+    "  -b, --fc_bias    path to fully connected bias file (infer mode)\n"
+    "  -i, --input      input file or directory\n"
+    "  -o, --output     output file (optional)\n"
+    "  -c, --color      grayscale | rgb (default = rgb)\n"
+    "  -v, --eval       evaluate model\n"
+    "  -h, --help       show this help\n";
 }
 
 static int get_run_mode_by_name(const std::string& run_mode_name) {
@@ -38,6 +46,8 @@ static int get_run_mode_by_name(const std::string& run_mode_name) {
         return RUN_MODE_FUNCTIONAL_TEST;
     if (run_mode_name == "speed")
         return RUN_MODE_SPEED_TEST;
+    if (run_mode_name == "infer")
+        return RUN_MODE_INFER_TEST;
 
     return RUN_MODE_NONE;
 }
@@ -84,7 +94,7 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
     
     while ((opt = getopt_long(
         argc, argv,
-        "m:e:k:s:i:o:c:h",
+        "m:e:k:s:p:w:b:i:o:c:v:h",
         long_options, 
         &option_idx
     )) != -1) {
@@ -99,6 +109,18 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
             
             case 'k':
                 args.kernel_type = get_kernel_type_by_name(optarg);
+                break;
+
+            case 'p':
+                args.kernel_path = optarg;
+                break;
+
+            case 'w':
+                args.fc_weight_path = optarg;
+                break;
+
+            case 'b':
+                args.fc_bias_path = optarg;
                 break;
             
             case 's':
@@ -116,6 +138,10 @@ int parse_cli(int argc, char **argv, CLIArgs& args) {
 
             case 'c':
                 args.color_mode = get_color_mode_by_name(optarg);
+                break;
+
+            case 'v':
+                args.eval = true;
                 break;
 
             case 'h':
@@ -142,12 +168,12 @@ int validate_cli(CLIArgs& args) {
         return CODE_FAILURE_INVALID_ARG;  
     }
 
-    if (args.kernel_type == KERNEL_TYPE_NONE) {
+    if (args.run_mode != RUN_MODE_INFER_TEST && args.kernel_type == KERNEL_TYPE_NONE) {
         print_err("Invalid kernel type", CODE_FAILURE_INVALID_ARG);
         return CODE_FAILURE_INVALID_ARG;
     }
 
-    if (args.kernel_size <= 0) {
+    if (args.run_mode != RUN_MODE_INFER_TEST && args.kernel_size <= 0) {
         print_err("Invalid kernel size", CODE_FAILURE_INVALID_ARG);
         return CODE_FAILURE_INVALID_ARG;  
     }
@@ -167,5 +193,26 @@ int validate_cli(CLIArgs& args) {
         args.color_mode = COLOR_MODE_RGB;
     }
     
+    if (args.run_mode == RUN_MODE_INFER_TEST) {
+
+        args.color_mode = COLOR_MODE_GRAYSCALE; // TODO: allow setting color mode for infer test
+        print_warn("will set color mode to Grayscale for infer test");
+
+        if (args.kernel_path.empty()) {
+            print_err("Kernel path required in infer mode", CODE_FAILURE_ARG_REQUIRED);
+            return CODE_FAILURE_ARG_REQUIRED;
+        }
+
+        if (args.fc_weight_path.empty()) {
+            print_err("FC weight path required in infer mode", CODE_FAILURE_ARG_REQUIRED);
+            return CODE_FAILURE_ARG_REQUIRED;
+        }
+
+        if (args.fc_bias_path.empty()) {
+            print_err("FC bias path required in infer mode", CODE_FAILURE_ARG_REQUIRED);
+            return CODE_FAILURE_ARG_REQUIRED;
+        }
+    }
+
     return CODE_VALIDATION_OK;
 }

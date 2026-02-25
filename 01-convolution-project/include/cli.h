@@ -16,8 +16,14 @@ struct CLIArgs {
 
     std::string input;
     std::string output;
+    
+    std::string kernel_path;
+    std::string fc_weight_path;
+    std::string fc_bias_path;
 
     int color_mode = COLOR_MODE_NONE;
+
+    bool eval = false;
 
     bool help = false;
     bool save_output = false;

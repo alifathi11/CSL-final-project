@@ -18,7 +18,7 @@ int read_functional_test_input(FunctionalTestParams& functional_test_params) {
     int color_mode_def = COLOR_MODE_RGB;
 
     const std::string input_filename_def = "./images/normal-small/01.jpeg";
-    const std::string output_dir_def     = "./images/output";
+    const std::string output_dir_def     = "./images/output/01.jpeg";
 
     // Variables 
     int engine_mode;
